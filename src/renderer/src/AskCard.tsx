@@ -72,7 +72,7 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
         <button
           className={`eye-btn${p.invisible ? ' on' : ''}`}
           onClick={p.onToggleInvisible}
-          title={p.invisible ? 'Invisible to screen share (click to make visible)' : 'Visible to screen share (click to hide)'}
+          aria-label={p.invisible ? 'Invisible to screen share (click to make visible)' : 'Visible to screen share (click to hide)'}
         >
           {p.invisible ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
@@ -168,13 +168,13 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
         <div className="ask-row">
           <button
             className={`round-btn small${p.smartMode ? ' lit' : ''}`}
-            title={p.smartMode ? 'Smart mode on (deeper answers)' : 'Smart mode off'}
+            aria-label={p.smartMode ? 'Smart mode on (deeper answers)' : 'Smart mode off'}
             onClick={p.onToggleSmart}
           >
             <Bolt size={15} />
           </button>
           <div className="spacer" />
-          <button className="dashed-btn" onClick={p.onAnswerFromScreen} title="Answer from what is on your screen">
+          <button className="dashed-btn" onClick={p.onAnswerFromScreen} aria-label="Answer from what is on your screen">
             <Monitor size={15} /> Answer from screen <kbd>Ctrl</kbd>
             <kbd>⇧</kbd>
             <kbd>↵</kbd>

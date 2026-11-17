@@ -11,7 +11,8 @@
     "build": "electron-vite build",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:invisibility": "electron-vite build && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-invisibility.ps1"
   },
   "overrides": {
     "csstype": "3.2.3"

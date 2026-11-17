@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import type { AppState } from '@shared/ipc'
+import { INITIAL_STATE, type AppState } from '@shared/ipc'
 import { AskCard, type AskCardHandle, type Message, type Mode } from './AskCard'
 import { CommandBar } from './CommandBar'
 import { SettingsCard } from './SettingsCard'
+import { Tooltip } from './Tooltip'
 import { useMouseThrough } from './useOverlayInput'
+
+const CAPTURE_MARKER = new URLSearchParams(location.search).get('marker') === '1'
 
 const NOT_CONNECTED =
   'Hintlyx is not connected to an AI model yet. Answers from Groq and Gemini are added in phase 2.'
@@ -11,10 +14,7 @@ const NOT_CONNECTED =
 export function App() {
   useMouseThrough()
 
-  const [appState, setAppState] = useState<AppState>({
-    failedHotkeys: [],
-    prefs: { invisible: false, hideFromTaskbar: false }
-  })
+  const [appState, setAppState] = useState<AppState>(INITIAL_STATE)
   const [listening, setListening] = useState(false)
   const [sessionStart, setSessionStart] = useState<number | null>(null)
   const [now, setNow] = useState(Date.now())
@@ -93,6 +93,19 @@ export function App() {
         onHide={() => window.hintlyx.hideWindow()}
       />
 
+      {appState.invisibility.failed && (
+        <div className="invis-warn" data-hit role="alert">
+          Invisibility could not be turned on. Hintlyx is visible in screen shares right now.
+        </div>
+      )}
+      {appState.prefs.invisible && !appState.invisibility.supported && (
+        <div className="invis-warn" data-hit role="alert">
+          This Windows version cannot hide windows from screen share. Update to Windows 10 (2004) or newer.
+        </div>
+      )}
+
+      {CAPTURE_MARKER && <div className="capture-marker" data-hit />}
+
       {settingsOpen ? (
         <SettingsCard appState={appState} onPrefs={setPrefs} onBack={() => setSettingsOpen(false)} />
       ) : (
@@ -113,6 +126,7 @@ export function App() {
           />
         )
       )}
+      <Tooltip />
     </div>
   )
 }

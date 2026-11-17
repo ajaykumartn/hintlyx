@@ -75,10 +75,26 @@ export interface Preferences {
   hideFromTaskbar: boolean
 }
 
+export interface InvisibilityStatus {
+  /** The OS can remove windows from capture (Windows 10 2004+ or macOS). */
+  supported: boolean
+  /** The OS confirms the window is currently excluded from capture. */
+  active: boolean
+  /** Invisibility was requested but the OS did not confirm it. */
+  failed: boolean
+}
+
 export interface AppState {
   /** Hotkeys that another app already uses, so they could not be registered. */
   failedHotkeys: HotkeyAction[]
   prefs: Preferences
+  invisibility: InvisibilityStatus
+}
+
+export const INITIAL_STATE: AppState = {
+  failedHotkeys: [],
+  prefs: { invisible: false, hideFromTaskbar: false },
+  invisibility: { supported: true, active: false, failed: false }
 }
 
 export interface HintlyxApi {

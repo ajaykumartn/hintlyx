@@ -36,7 +36,10 @@ npm test           # unit tests
 npm run typecheck
 npm run build      # production build into out/
 npm start          # run the production build
+npm run test:invisibility   # checks screen-capture hiding on this PC (Windows)
 ```
+
+`test:invisibility` starts Hintlyx, captures the screen with four methods (GDI, DXGI duplication, Windows Graphics Capture, and browser `getDisplayMedia` as used by Meet and Teams on the web) and checks that Hintlyx is captured when visible and missing when invisible, including after hide and show.
 
 ## License
 

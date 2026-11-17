@@ -1,9 +1,10 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, ipcMain, safeStorage, type IpcMainEvent, type IpcMainInvokeEvent } from 'electron'
-import { IPC, isProvider, type AppState, type OverlayCommand, type SettingsView } from '../shared/ipc'
+import { app, BrowserWindow, ipcMain, safeStorage, screen, type IpcMainEvent, type IpcMainInvokeEvent } from 'electron'
+import { INITIAL_STATE, IPC, isProvider, type AppState, type OverlayCommand, type SettingsView } from '../shared/ipc'
 import { createTimer, formatReport, pushLimited, type TimingReport } from '../shared/timing'
 import { fileStorage } from './fileStorage'
 import { registerHotkeys, unregisterHotkeys } from './hotkeys'
+import { applyInvisibility } from './invisibility'
 import { KeyStore } from './keyStore'
 import { PrefsStore } from './prefs'
 import { createOverlayWindow, MOVE_STEP, moveWindowBy, setWindowPosition } from './window'
@@ -13,14 +14,30 @@ let keyStore: KeyStore
 let prefsStore: PrefsStore
 let timings: TimingReport[] = []
 let dragOrigin: [number, number] | null = null
-const state: AppState = { failedHotkeys: [], prefs: { invisible: false, hideFromTaskbar: false } }
+const state: AppState = structuredClone(INITIAL_STATE)
 
-/** Applies invisibility settings to the window. */
+/** Applies invisibility and taskbar settings, then confirms them with the OS. */
 function applyPrefs(): void {
   if (!win) return
-  // Windows 10 2004+ excludes the window from capture; older Windows shows it as a black box.
-  win.setContentProtection(state.prefs.invisible)
+  const before = JSON.stringify(state.invisibility)
+  state.invisibility = applyInvisibility(win, state.prefs.invisible)
   win.setSkipTaskbar(state.prefs.hideFromTaskbar)
+  if (JSON.stringify(state.invisibility) !== before) {
+    console.log(`[invisibility] ${JSON.stringify(state.invisibility)}`)
+    broadcastState()
+  }
+}
+
+/**
+ * Re-checks protection with the OS. If it was lost (for example after hide/show or a
+ * display change), turn it back on before the next frame is shared.
+ */
+function enforceInvisibility(): void {
+  if (!win || win.isDestroyed() || !state.prefs.invisible) return
+  if (!win.isContentProtected()) {
+    console.warn('[invisibility] protection was lost, re-applying')
+    applyPrefs()
+  }
 }
 
 function broadcastState(): void {
@@ -137,8 +154,15 @@ if (!app.requestSingleInstanceLock()) {
     t.mark('stores')
 
     registerIpc()
-    win = createOverlayWindow()
+    win = createOverlayWindow({ captureMarker: process.env['HINTLYX_CAPTURE_TEST'] === '1' })
+    // Protection goes on before the window is ever shown, so no frame leaks.
     applyPrefs()
+    win.on('show', enforceInvisibility)
+    win.on('restore', enforceInvisibility)
+    win.on('moved', enforceInvisibility)
+    screen.on('display-metrics-changed', enforceInvisibility)
+    screen.on('display-added', enforceInvisibility)
+    setInterval(enforceInvisibility, 2000)
     t.mark('window-created')
 
     state.failedHotkeys = registerHotkeys({

@@ -24,14 +24,14 @@ export function CommandBar(p: Props) {
 
   return (
     <div className="bar-row">
-      <button className="round-btn grip" data-hit title="Drag to move (Ctrl+Alt+Arrows)" {...drag}>
+      <button className="round-btn grip" data-hit aria-label="Drag to move (Ctrl+Alt+Arrows)" {...drag}>
         <Grip />
       </button>
 
       <div className="pill glass" data-hit>
         <button
           className={`logo-btn${p.settingsOpen ? ' active' : ''}`}
-          title="Settings"
+          aria-label="Settings"
           onClick={p.onToggleSettings}
         >
           <Logo size={22} />
@@ -43,26 +43,26 @@ export function CommandBar(p: Props) {
           className={`switch${p.listening ? ' on' : ''}`}
           role="switch"
           aria-checked={p.listening}
-          title={p.listening ? 'Stop listening' : 'Start listening'}
+          aria-label={p.listening ? 'Stop listening' : 'Start listening'}
           onClick={p.onToggleListening}
         >
           <span className="knob">{p.listening ? <Wave size={15} /> : <MicOff size={15} />}</span>
         </button>
 
         {inSession ? (
-          <button className="session-btn end" onClick={p.onEndSession} title="End session">
+          <button className="session-btn end" onClick={p.onEndSession} aria-label="End session">
             <StopDot size={18} />
             <span>{formatDuration(p.sessionSeconds!)}</span>
           </button>
         ) : (
-          <button className="session-btn" onClick={p.onStartSession} title="Start session">
+          <button className="session-btn" onClick={p.onStartSession} aria-label="Start session">
             <PlayDot size={18} />
             <span>Start</span>
           </button>
         )}
       </div>
 
-      <button className="round-btn" data-hit title="Hide (Ctrl+\)" onClick={p.onHide}>
+      <button className="round-btn" data-hit aria-label="Hide (Ctrl+\)" onClick={p.onHide}>
         <Close size={16} />
       </button>
     </div>

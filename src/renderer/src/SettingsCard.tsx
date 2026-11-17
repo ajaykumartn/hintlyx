@@ -34,6 +34,18 @@ function Toggle({ on, onChange, label, hint }: { on: boolean; onChange(v: boolea
   )
 }
 
+function invisibilityText({ prefs, invisibility }: AppState): string {
+  if (!invisibility.supported) return 'not supported on this Windows version'
+  if (invisibility.failed) return 'failed, Hintlyx is visible in screen shares'
+  if (invisibility.active) return 'on, confirmed by Windows'
+  return prefs.invisible ? 'turning on…' : 'off, visible in screen shares'
+}
+
+function invisibilityClass({ invisibility }: AppState): string {
+  if (!invisibility.supported || invisibility.failed) return 'warn'
+  return invisibility.active ? 'ok' : 'muted'
+}
+
 export function SettingsCard({ appState, onPrefs, onBack }: Props) {
   const [settings, setSettings] = useState<SettingsView | null>(null)
   const [drafts, setDrafts] = useState<Record<Provider, string>>({ groq: '', gemini: '' })
@@ -82,6 +94,7 @@ export function SettingsCard({ appState, onPrefs, onBack }: Props) {
             on={appState.prefs.invisible}
             onChange={(v) => onPrefs({ invisible: v })}
           />
+          <p className={`small ${invisibilityClass(appState)}`}>Status: {invisibilityText(appState)}</p>
           <Toggle
             label="Hide from taskbar"
             hint="Use Ctrl + \ to show Hintlyx again."

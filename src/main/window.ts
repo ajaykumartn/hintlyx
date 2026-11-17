@@ -11,7 +11,7 @@ export const MOVE_STEP = 60
  * The overlay is always on top. It is visible to screen sharing unless the user turns on
  * invisibility (see applyPrefs in index.ts).
  */
-export function createOverlayWindow(): BrowserWindow {
+export function createOverlayWindow(opts: { captureMarker?: boolean } = {}): BrowserWindow {
   const { workArea } = screen.getPrimaryDisplay()
 
   const win = new BrowserWindow({
@@ -34,7 +34,9 @@ export function createOverlayWindow(): BrowserWindow {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       sandbox: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      // The spellcheck menu would open as a separate native window, outside screen-share protection.
+      spellcheck: false
     }
   })
 
@@ -46,11 +48,15 @@ export function createOverlayWindow(): BrowserWindow {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   win.webContents.on('will-navigate', (event) => event.preventDefault())
 
+  // Capture test mode draws a solid magenta block so captures can be checked pixel by pixel.
+  const query: Record<string, string> = opts.captureMarker ? { marker: '1' } : {}
   const devUrl = process.env['ELECTRON_RENDERER_URL']
   if (!app.isPackaged && devUrl) {
-    void win.loadURL(devUrl)
+    const url = new URL(devUrl)
+    for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v)
+    void win.loadURL(url.toString())
   } else {
-    void win.loadFile(join(__dirname, '../renderer/index.html'))
+    void win.loadFile(join(__dirname, '../renderer/index.html'), { query })
   }
 
   return win

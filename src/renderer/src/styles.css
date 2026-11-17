@@ -475,6 +475,39 @@ kbd {
   padding: 8px 0;
 }
 
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  transform: translateX(-50%);
+  max-width: 260px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: #05080f;
+  color: var(--text);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.invis-warn {
+  width: 640px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  background: #2a1f05;
+  color: var(--warn);
+  font-size: 13px;
+}
+
+/* Capture test mode: a solid block that is easy to find in screenshots. */
+.capture-marker {
+  width: 640px;
+  height: 120px;
+  border-radius: 12px;
+  background: #ff00ff;
+}
+
 /* ---------- settings ---------- */
 
 .settings .card-body {
@@ -501,6 +534,10 @@ kbd {
 
 .warn {
   color: var(--warn);
+}
+
+.ok {
+  color: #4ade80;
 }
 
 .key-row {
