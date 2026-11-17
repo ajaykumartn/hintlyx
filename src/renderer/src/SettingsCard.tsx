@@ -7,6 +7,7 @@ import {
   PROVIDERS,
   type AppState,
   type HotkeyAction,
+  type Preferences,
   type Provider,
   type SettingsView
 } from '@shared/ipc'
@@ -15,10 +16,25 @@ import { Back } from './icons'
 
 interface Props {
   appState: AppState
+  onPrefs(patch: Partial<Preferences>): void
   onBack(): void
 }
 
-export function SettingsCard({ appState, onBack }: Props) {
+function Toggle({ on, onChange, label, hint }: { on: boolean; onChange(v: boolean): void; label: string; hint: string }) {
+  return (
+    <div className="pref-row">
+      <div className="key-label">
+        <strong>{label}</strong>
+        <span className="muted small">{hint}</span>
+      </div>
+      <button className={`switch small${on ? ' on' : ''}`} role="switch" aria-checked={on} onClick={() => onChange(!on)}>
+        <span className="knob" />
+      </button>
+    </div>
+  )
+}
+
+export function SettingsCard({ appState, onPrefs, onBack }: Props) {
   const [settings, setSettings] = useState<SettingsView | null>(null)
   const [drafts, setDrafts] = useState<Record<Provider, string>>({ groq: '', gemini: '' })
   const [error, setError] = useState<string | null>(null)
@@ -58,6 +74,22 @@ export function SettingsCard({ appState, onBack }: Props) {
       </div>
 
       <div className="card-body">
+        <section>
+          <h3>Invisibility</h3>
+          <Toggle
+            label="Invisible to screen share"
+            hint="Hidden from screen sharing, recordings and screenshots. Needs Windows 10 (2004) or newer."
+            on={appState.prefs.invisible}
+            onChange={(v) => onPrefs({ invisible: v })}
+          />
+          <Toggle
+            label="Hide from taskbar"
+            hint="Use Ctrl + \ to show Hintlyx again."
+            on={appState.prefs.hideFromTaskbar}
+            onChange={(v) => onPrefs({ hideFromTaskbar: v })}
+          />
+        </section>
+
         <section>
           <h3>API keys</h3>
           <p className="muted">

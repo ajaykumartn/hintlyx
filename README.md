@@ -2,7 +2,7 @@
 
 A fast AI copilot for meetings, lectures and interview practice. Hintlyx sits on top of your screen as a small command bar and gives you answers about your screen and conversation.
 
-Hintlyx is a visible assistant: it appears in the taskbar and in screen shares. Use it only where AI help is allowed.
+Hintlyx is visible by default. Click the eye button (or Settings, Invisibility) to hide it from screen sharing, recordings and screenshots, and optionally from the taskbar. Invisibility needs Windows 10 version 2004 or newer.
 
 ## Status
 
@@ -11,6 +11,7 @@ Phase 1 (app shell) is done:
 - Command bar: drag handle, settings, listening switch, session timer, hide button
 - Ask card: mode menu, transcript toggle, quick actions, ask bar, answer-from-screen button
 - Settings: Groq and Gemini API keys, encrypted with Windows data protection
+- Invisibility: hide from screen share and taskbar (off by default, remembered between runs)
 - Global hotkeys and a speed log
 
 AI answers (phase 2) and live transcription (phase 3) are not connected yet.

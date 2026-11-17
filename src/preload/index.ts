@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type HintlyxApi, type OverlayCommand } from '../shared/ipc'
+import { IPC, type AppState, type HintlyxApi, type OverlayCommand } from '../shared/ipc'
 
 const api: HintlyxApi = {
   getSettings: () => ipcRenderer.invoke(IPC.getSettings),
@@ -15,6 +15,12 @@ const api: HintlyxApi = {
     const wrapped = (_event: unknown, command: OverlayCommand) => listener(command)
     ipcRenderer.on(IPC.command, wrapped)
     return () => ipcRenderer.removeListener(IPC.command, wrapped)
+  },
+  setPrefs: (patch) => ipcRenderer.invoke(IPC.setPrefs, patch),
+  onState: (listener) => {
+    const wrapped = (_event: unknown, state: AppState) => listener(state)
+    ipcRenderer.on(IPC.state, wrapped)
+    return () => ipcRenderer.removeListener(IPC.state, wrapped)
   },
   quit: () => ipcRenderer.send(IPC.quit)
 }

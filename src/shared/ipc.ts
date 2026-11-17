@@ -50,6 +50,8 @@ export const IPC = {
   dragStart: 'window:drag-start',
   dragMove: 'window:drag-move',
   getTimings: 'timing:list',
+  setPrefs: 'prefs:set',
+  state: 'app:state',
   quit: 'app:quit'
 } as const
 
@@ -66,9 +68,17 @@ export interface SettingsView {
   keys: Record<Provider, KeyStatus>
 }
 
+export interface Preferences {
+  /** Hidden from screen sharing, recordings and screenshots. */
+  invisible: boolean
+  /** Not shown in the Windows taskbar. */
+  hideFromTaskbar: boolean
+}
+
 export interface AppState {
   /** Hotkeys that another app already uses, so they could not be registered. */
   failedHotkeys: HotkeyAction[]
+  prefs: Preferences
 }
 
 export interface HintlyxApi {
@@ -83,5 +93,7 @@ export interface HintlyxApi {
   dragStart(): void
   dragMove(dx: number, dy: number): void
   onCommand(listener: (command: OverlayCommand) => void): () => void
+  setPrefs(patch: Partial<Preferences>): Promise<AppState>
+  onState(listener: (state: AppState) => void): () => void
   quit(): void
 }

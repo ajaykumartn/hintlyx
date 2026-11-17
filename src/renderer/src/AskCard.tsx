@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { BadgeCheck, Bolt, ChatQ, Check, Chevron, Copy, Lines, Monitor, Recap } from './icons'
+import { BadgeCheck, Bolt, ChatQ, Check, Chevron, Copy, Eye, EyeOff, Lines, Monitor, Recap } from './icons'
 
 export const MODES = ['Interview practice', 'Meeting', 'Lecture', 'Coding help'] as const
 export type Mode = (typeof MODES)[number]
@@ -24,6 +24,8 @@ interface Props {
   listening: boolean
   smartMode: boolean
   onToggleSmart(): void
+  invisible: boolean
+  onToggleInvisible(): void
   onAsk(text: string): void
   onAnswerFromScreen(): void
   onClear(): void
@@ -66,6 +68,14 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
   return (
     <div className="card glass" data-hit>
       <div className="card-head">
+        <div className="head-left">
+        <button
+          className={`eye-btn${p.invisible ? ' on' : ''}`}
+          onClick={p.onToggleInvisible}
+          title={p.invisible ? 'Invisible to screen share (click to make visible)' : 'Visible to screen share (click to hide)'}
+        >
+          {p.invisible ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
         <div className="mode">
           <button className="mode-btn" onClick={() => setModeOpen((o) => !o)}>
             {p.mode} <Chevron size={16} />
@@ -87,6 +97,7 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
               ))}
             </div>
           )}
+        </div>
         </div>
         <div className="head-actions">
           {p.messages.length > 0 && (

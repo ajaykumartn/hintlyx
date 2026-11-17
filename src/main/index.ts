@@ -5,13 +5,27 @@ import { createTimer, formatReport, pushLimited, type TimingReport } from '../sh
 import { fileStorage } from './fileStorage'
 import { registerHotkeys, unregisterHotkeys } from './hotkeys'
 import { KeyStore } from './keyStore'
+import { PrefsStore } from './prefs'
 import { createOverlayWindow, MOVE_STEP, moveWindowBy, setWindowPosition } from './window'
 
 let win: BrowserWindow | null = null
 let keyStore: KeyStore
+let prefsStore: PrefsStore
 let timings: TimingReport[] = []
 let dragOrigin: [number, number] | null = null
-const state: AppState = { failedHotkeys: [] }
+const state: AppState = { failedHotkeys: [], prefs: { invisible: false, hideFromTaskbar: false } }
+
+/** Applies invisibility settings to the window. */
+function applyPrefs(): void {
+  if (!win) return
+  // Windows 10 2004+ excludes the window from capture; older Windows shows it as a black box.
+  win.setContentProtection(state.prefs.invisible)
+  win.setSkipTaskbar(state.prefs.hideFromTaskbar)
+}
+
+function broadcastState(): void {
+  win?.webContents.send(IPC.state, state)
+}
 
 function record(report: TimingReport): void {
   timings = pushLimited(timings, report, 50)
@@ -79,6 +93,12 @@ function registerIpc(): void {
     return settingsView()
   })
   handle(IPC.getState, () => state)
+  handle(IPC.setPrefs, (patch: unknown) => {
+    state.prefs = prefsStore.update(patch)
+    applyPrefs()
+    broadcastState()
+    return state
+  })
   handle(IPC.getTimings, () => timings)
 
   on(IPC.hideWindow, () => win?.hide())
@@ -112,10 +132,13 @@ if (!app.requestSingleInstanceLock()) {
       },
       fileStorage(join(app.getPath('userData'), 'keys.json'))
     )
-    t.mark('key-store')
+    prefsStore = new PrefsStore(fileStorage(join(app.getPath('userData'), 'prefs.json')))
+    state.prefs = prefsStore.get()
+    t.mark('stores')
 
     registerIpc()
     win = createOverlayWindow()
+    applyPrefs()
     t.mark('window-created')
 
     state.failedHotkeys = registerHotkeys({

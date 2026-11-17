@@ -11,7 +11,10 @@ const NOT_CONNECTED =
 export function App() {
   useMouseThrough()
 
-  const [appState, setAppState] = useState<AppState>({ failedHotkeys: [] })
+  const [appState, setAppState] = useState<AppState>({
+    failedHotkeys: [],
+    prefs: { invisible: false, hideFromTaskbar: false }
+  })
   const [listening, setListening] = useState(false)
   const [sessionStart, setSessionStart] = useState<number | null>(null)
   const [now, setNow] = useState(Date.now())
@@ -25,7 +28,10 @@ export function App() {
 
   useEffect(() => {
     void window.hintlyx.getState().then(setAppState)
+    return window.hintlyx.onState(setAppState)
   }, [])
+
+  const setPrefs = (patch: Partial<AppState['prefs']>) => void window.hintlyx.setPrefs(patch).then(setAppState)
 
   // Session timer.
   useEffect(() => {
@@ -88,7 +94,7 @@ export function App() {
       />
 
       {settingsOpen ? (
-        <SettingsCard appState={appState} onBack={() => setSettingsOpen(false)} />
+        <SettingsCard appState={appState} onPrefs={setPrefs} onBack={() => setSettingsOpen(false)} />
       ) : (
         cardOpen && (
           <AskCard
@@ -99,6 +105,8 @@ export function App() {
             listening={listening}
             smartMode={smartMode}
             onToggleSmart={() => setSmartMode((s) => !s)}
+            invisible={appState.prefs.invisible}
+            onToggleInvisible={() => setPrefs({ invisible: !appState.prefs.invisible })}
             onAsk={ask}
             onAnswerFromScreen={answerFromScreen}
             onClear={() => setMessages([])}

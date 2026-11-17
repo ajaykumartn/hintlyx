@@ -8,8 +8,8 @@ const TOP_MARGIN = 8
 export const MOVE_STEP = 60
 
 /**
- * The overlay is always on top and translucent, but it is a normal visible window:
- * it shows in the taskbar and in screen shares (no content protection).
+ * The overlay is always on top. It is visible to screen sharing unless the user turns on
+ * invisibility (see applyPrefs in index.ts).
  */
 export function createOverlayWindow(): BrowserWindow {
   const { workArea } = screen.getPrimaryDisplay()
