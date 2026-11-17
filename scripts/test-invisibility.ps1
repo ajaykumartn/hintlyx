@@ -11,6 +11,40 @@ $electron = Join-Path $root 'node_modules\electron\dist\electron.exe'
 $prefsPath = Join-Path $env:APPDATA 'hintlyx\prefs.json'
 $original = if (Test-Path $prefsPath) { Get-Content $prefsPath -Raw } else { $null }
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+Add-Type -ReferencedAssemblies System.Drawing @'
+using System;
+using System.Runtime.InteropServices;
+public static class HxCursor {
+  [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X; public int Y; }
+  [StructLayout(LayoutKind.Sequential)] public struct CURSORINFO { public int cbSize; public int flags; public IntPtr hCursor; public POINT pt; }
+  [DllImport("user32.dll")] public static extern bool GetCursorInfo(ref CURSORINFO ci);
+  [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+  [DllImport("user32.dll")] public static extern bool GetCursorPos(out POINT p);
+  // Real mouse input (like a physical mouse). SetCursorPos alone does not create input events.
+  [DllImport("user32.dll")] public static extern void mouse_event(int flags, int dx, int dy, int data, IntPtr extra);
+  public static void Nudge(int dx) { mouse_event(0x0001, dx, 0, 0, IntPtr.Zero); }
+  [DllImport("user32.dll")] public static extern bool DrawIconEx(IntPtr hdc, int x, int y, IntPtr icon, int w, int h, int step, IntPtr brush, int flags);
+  public static string Last = "";
+  /// Screen-share apps draw the pointer from this. It counts as drawn only if Windows shows a
+  /// pointer AND its image has visible pixels (a blank pointer image draws nothing).
+  public static bool PointerDrawn() {
+    var ci = new CURSORINFO(); ci.cbSize = Marshal.SizeOf(ci);
+    GetCursorInfo(ref ci);
+    if ((ci.flags & 1) == 0 || ci.hCursor == IntPtr.Zero) { Last = "no pointer"; return false; }
+    int visible = 0;
+    foreach (var bg in new[] { System.Drawing.Color.White, System.Drawing.Color.Black }) {
+      using (var bmp = new System.Drawing.Bitmap(64, 64))
+      using (var g = System.Drawing.Graphics.FromImage(bmp)) {
+        g.Clear(bg);
+        var hdc = g.GetHdc(); DrawIconEx(hdc, 0, 0, ci.hCursor, 0, 0, 0, IntPtr.Zero, 3); g.ReleaseHdc(hdc);
+        for (int y = 0; y < 64; y++) for (int x = 0; x < 64; x++) if (bmp.GetPixel(x, y).ToArgb() != bg.ToArgb()) visible++;
+      }
+    }
+    Last = "handle " + ci.hCursor + ", visible pixels " + visible;
+    return visible > 0;
+  }
+}
+'@
 
 function Get-HintlyxProcs { Get-Process electron -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $electron } }
 
@@ -77,13 +111,34 @@ function Test-Case([string]$name, $captures, [bool]$expectVisible) {
   return $ok
 }
 
+# Moves the mouse onto the command bar and asks Windows whether a pointer is drawn there.
+function Test-Pointer([string]$name, [bool]$expectDrawn) {
+  $b = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
+  $x = [int]($b.X + $b.Width / 2); $y = $b.Y + 38
+  $drawn = $null
+  [HxCursor]::SetCursorPos($x, $y) | Out-Null
+  foreach ($i in 1..6) {
+    [HxCursor]::Nudge($(if ($i % 2) { 1 } else { -1 }))
+    Start-Sleep -Milliseconds 250
+    $drawn = [HxCursor]::PointerDrawn()
+  }
+  $pass = $drawn -eq $expectDrawn
+  Write-Host ('{0,-6} {1,-28} {2,-28} {3}' -f ($(if ($pass) { 'PASS' } else { 'FAIL' })), $name, 'pointer over Hintlyx', "$(if ($drawn) { 'drawn' } else { 'hidden' }) ($([HxCursor]::Last))")
+  return $pass
+}
+
+$startPos = New-Object HxCursor+POINT
+[HxCursor]::GetCursorPos([ref]$startPos) | Out-Null
+
 $allOk = $true
 try {
   Start-Hintlyx $false
   $allOk = (Test-Case 'visible (control)' (Get-Captures) $true) -and $allOk
+  $allOk = (Test-Pointer 'visible (control)' $true) -and $allOk
 
   Start-Hintlyx $true
   $allOk = (Test-Case 'invisible' (Get-Captures) $false) -and $allOk
+  $allOk = (Test-Pointer 'invisible' $false) -and $allOk
 
   # Hide and show again with the Ctrl+\ hotkey, then re-check.
   [System.Windows.Forms.SendKeys]::SendWait('^\'); Start-Sleep -Milliseconds 700
@@ -91,6 +146,7 @@ try {
   $allOk = (Test-Case 'invisible after hide/show' (Get-Captures) $false) -and $allOk
 }
 finally {
+  [HxCursor]::SetCursorPos($startPos.X, $startPos.Y) | Out-Null
   Stop-Hintlyx
   if ($null -ne $original) { [IO.File]::WriteAllText($prefsPath, $original) } else { Remove-Item $prefsPath -ErrorAction SilentlyContinue }
 }

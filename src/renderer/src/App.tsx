@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { INITIAL_STATE, type AppState } from '@shared/ipc'
 import { AskCard, type AskCardHandle, type Message, type Mode } from './AskCard'
 import { CommandBar } from './CommandBar'
+import { FakeCursor } from './FakeCursor'
 import { SettingsCard } from './SettingsCard'
 import { Tooltip } from './Tooltip'
 import { useMouseThrough } from './useOverlayInput'
@@ -71,8 +72,11 @@ export function App() {
 
   const sessionSeconds = sessionStart === null ? null : Math.max(0, Math.floor((now - sessionStart) / 1000))
 
+  // Only hide the real pointer when Windows confirms the overlay is excluded from capture.
+  const hidePointer = appState.prefs.invisible && appState.invisibility.active
+
   return (
-    <div className="stage">
+    <div className={`stage${hidePointer ? ' hide-pointer' : ''}`}>
       <CommandBar
         listening={listening}
         sessionSeconds={sessionSeconds}
@@ -127,6 +131,7 @@ export function App() {
         )
       )}
       <Tooltip />
+      <FakeCursor enabled={hidePointer} />
     </div>
   )
 }

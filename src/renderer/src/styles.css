@@ -508,6 +508,29 @@ kbd {
   background: #ff00ff;
 }
 
+/*
+ * Invisible mode: hide the real Windows pointer everywhere in the overlay so screen shares
+ * show no pointer over Hintlyx. This is safe over the empty, click-through areas too: there the
+ * OS uses the underlying window's cursor, not ours, so only the solid UI is actually affected.
+ */
+.stage.hide-pointer,
+.stage.hide-pointer * {
+  cursor: none !important;
+}
+
+.fake-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.fake-cursor svg {
+  display: block;
+}
+
 /* ---------- settings ---------- */
 
 .settings .card-body {
