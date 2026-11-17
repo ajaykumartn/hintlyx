@@ -1,0 +1,22 @@
+import { contextBridge, ipcRenderer } from 'electron'
+import { IPC, type HintlyxApi, type OverlayCommand } from '../shared/ipc'
+
+const api: HintlyxApi = {
+  getSettings: () => ipcRenderer.invoke(IPC.getSettings),
+  setApiKey: (provider, key) => ipcRenderer.invoke(IPC.setApiKey, provider, key),
+  clearApiKey: (provider) => ipcRenderer.invoke(IPC.clearApiKey, provider),
+  getState: () => ipcRenderer.invoke(IPC.getState),
+  getTimings: () => ipcRenderer.invoke(IPC.getTimings),
+  hideWindow: () => ipcRenderer.send(IPC.hideWindow),
+  setMouseThrough: (through) => ipcRenderer.send(IPC.setMouseThrough, through),
+  dragStart: () => ipcRenderer.send(IPC.dragStart),
+  dragMove: (dx, dy) => ipcRenderer.send(IPC.dragMove, dx, dy),
+  onCommand: (listener) => {
+    const wrapped = (_event: unknown, command: OverlayCommand) => listener(command)
+    ipcRenderer.on(IPC.command, wrapped)
+    return () => ipcRenderer.removeListener(IPC.command, wrapped)
+  },
+  quit: () => ipcRenderer.send(IPC.quit)
+}
+
+contextBridge.exposeInMainWorld('hintlyx', api)
