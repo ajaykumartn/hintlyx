@@ -11,7 +11,7 @@ export interface CompletionRequest {
 }
 
 export interface LlmProvider {
-  readonly id: 'groq' | 'gemini'
+  readonly id: 'groq' | 'gemini' | 'ollama'
   readonly model: string
   /** True when this provider can read a screenshot. */
   readonly vision: boolean

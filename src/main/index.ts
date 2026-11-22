@@ -258,7 +258,11 @@ if (!app.requestSingleInstanceLock()) {
     )
     prefsStore = new PrefsStore(fileStorage(join(app.getPath('userData'), 'prefs.json')))
     state.prefs = prefsStore.get()
-    llm = new LlmService({ get: (p) => keyStore.get(p) })
+    llm = new LlmService(
+      { get: (p) => keyStore.get(p) },
+      fetch,
+      () => (state.prefs.ollama.enabled ? { baseUrl: state.prefs.ollama.baseUrl, model: state.prefs.ollama.model } : null)
+    )
     t.mark('stores')
 
     registerIpc()

@@ -75,11 +75,25 @@ export interface SettingsView {
   keys: Record<Provider, KeyStatus>
 }
 
+export interface OllamaPrefs {
+  /** Use a local Ollama server as an offline fallback when cloud providers fail. */
+  enabled: boolean
+  baseUrl: string
+  model: string
+}
+
 export interface Preferences {
   /** Hidden from screen sharing, recordings and screenshots. */
   invisible: boolean
   /** Not shown in the Windows taskbar. */
   hideFromTaskbar: boolean
+  ollama: OllamaPrefs
+}
+
+export const DEFAULT_OLLAMA: OllamaPrefs = {
+  enabled: false,
+  baseUrl: 'http://localhost:11434',
+  model: 'llama3.2'
 }
 
 export interface InvisibilityStatus {
@@ -100,7 +114,7 @@ export interface AppState {
 
 export const INITIAL_STATE: AppState = {
   failedHotkeys: [],
-  prefs: { invisible: false, hideFromTaskbar: false },
+  prefs: { invisible: false, hideFromTaskbar: false, ollama: DEFAULT_OLLAMA },
   invisibility: { supported: true, active: false, failed: false }
 }
 

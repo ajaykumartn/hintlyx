@@ -12,7 +12,7 @@ import { useSuggestions } from './useSuggestions'
 const CAPTURE_MARKER = new URLSearchParams(location.search).get('marker') === '1'
 const AUTO_LISTEN = new URLSearchParams(location.search).get('autolisten') === '1'
 
-const PROVIDER_LABEL: Record<string, string> = { groq: 'Groq', gemini: 'Gemini' }
+const PROVIDER_LABEL: Record<string, string> = { groq: 'Groq', gemini: 'Gemini', ollama: 'Ollama (local)' }
 
 export function App() {
   useMouseThrough()

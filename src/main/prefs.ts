@@ -1,19 +1,39 @@
-import type { Preferences } from '../shared/ipc'
+import { DEFAULT_OLLAMA, type OllamaPrefs, type Preferences } from '../shared/ipc'
 import type { TextStorage } from './keyStore'
 
 export const DEFAULT_PREFS: Preferences = {
   invisible: false,
-  hideFromTaskbar: false
+  hideFromTaskbar: false,
+  ollama: { ...DEFAULT_OLLAMA }
 }
 
-/** Keeps only known boolean fields, so a bad file or bad IPC input cannot inject anything. */
-export function sanitizePrefs(input: unknown, base: Preferences = DEFAULT_PREFS): Preferences {
+const MAX_URL = 200
+const MAX_MODEL = 100
+
+function sanitizeOllama(input: unknown, base: OllamaPrefs): OllamaPrefs {
   const out = { ...base }
   if (input && typeof input === 'object') {
-    for (const key of Object.keys(DEFAULT_PREFS) as (keyof Preferences)[]) {
-      const value = (input as Record<string, unknown>)[key]
-      if (typeof value === 'boolean') out[key] = value
+    const o = input as Record<string, unknown>
+    if (typeof o['enabled'] === 'boolean') out.enabled = o['enabled']
+    // Accept only http/https URLs, to avoid pointing the app at anything odd.
+    if (typeof o['baseUrl'] === 'string' && /^https?:\/\/\S+$/.test(o['baseUrl']) && o['baseUrl'].length <= MAX_URL) {
+      out.baseUrl = o['baseUrl'].trim().replace(/\/$/, '')
     }
+    if (typeof o['model'] === 'string' && o['model'].trim() && o['model'].length <= MAX_MODEL) {
+      out.model = o['model'].trim()
+    }
+  }
+  return out
+}
+
+/** Keeps only known fields, so a bad file or bad IPC input cannot inject anything. */
+export function sanitizePrefs(input: unknown, base: Preferences = DEFAULT_PREFS): Preferences {
+  const out: Preferences = { ...base, ollama: { ...base.ollama } }
+  if (input && typeof input === 'object') {
+    const o = input as Record<string, unknown>
+    if (typeof o['invisible'] === 'boolean') out.invisible = o['invisible']
+    if (typeof o['hideFromTaskbar'] === 'boolean') out.hideFromTaskbar = o['hideFromTaskbar']
+    if ('ollama' in o) out.ollama = sanitizeOllama(o['ollama'], out.ollama)
   }
   return out
 }

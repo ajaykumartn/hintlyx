@@ -16,10 +16,18 @@ const memory = (data: string | null = null): TextStorage & { data: string | null
 describe('sanitizePrefs', () => {
   it('keeps known booleans and drops everything else', () => {
     expect(sanitizePrefs({ invisible: true, hideFromTaskbar: 'yes', evil: 1 })).toEqual({
+      ...DEFAULT_PREFS,
       invisible: true,
       hideFromTaskbar: false
     })
     expect(sanitizePrefs(null)).toEqual(DEFAULT_PREFS)
+  })
+
+  it('sanitizes the ollama config and rejects bad URLs', () => {
+    const r = sanitizePrefs({ ollama: { enabled: true, baseUrl: 'http://localhost:11434/', model: 'qwen2.5' } })
+    expect(r.ollama).toEqual({ enabled: true, baseUrl: 'http://localhost:11434', model: 'qwen2.5' })
+    const bad = sanitizePrefs({ ollama: { enabled: true, baseUrl: 'file:///etc/passwd', model: '' } })
+    expect(bad.ollama).toEqual({ enabled: true, baseUrl: DEFAULT_PREFS.ollama.baseUrl, model: DEFAULT_PREFS.ollama.model })
   })
 })
 
@@ -27,9 +35,9 @@ describe('PrefsStore', () => {
   it('defaults to visible, then saves and reloads changes', () => {
     const storage = memory()
     const store = new PrefsStore(storage)
-    expect(store.get()).toEqual({ invisible: false, hideFromTaskbar: false })
+    expect(store.get()).toEqual(DEFAULT_PREFS)
     store.update({ invisible: true })
-    expect(new PrefsStore(storage).get()).toEqual({ invisible: true, hideFromTaskbar: false })
+    expect(new PrefsStore(storage).get()).toEqual({ ...DEFAULT_PREFS, invisible: true })
   })
 
   it('treats a corrupt file as defaults', () => {

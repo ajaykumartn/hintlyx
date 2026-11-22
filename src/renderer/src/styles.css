@@ -703,6 +703,32 @@ kbd {
   padding: 8px 0;
 }
 
+.ollama-fields {
+  display: flex;
+  gap: 10px;
+  padding: 4px 0 2px;
+}
+
+.ollama-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.ollama-fields input {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  outline: none;
+}
+
+.ollama-fields input:focus {
+  border-color: var(--blue-hi);
+}
+
 .tooltip {
   position: fixed;
   z-index: 50;

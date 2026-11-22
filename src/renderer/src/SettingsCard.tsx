@@ -155,6 +155,36 @@ export function SettingsCard({ appState, onPrefs, onBack }: Props) {
         </section>
 
         <section>
+          <h3>Offline fallback (Ollama)</h3>
+          <Toggle
+            label="Use local Ollama when cloud fails"
+            hint="Runs answers on your own PC via Ollama. Needs Ollama installed and the model pulled."
+            on={appState.prefs.ollama.enabled}
+            onChange={(v) => onPrefs({ ollama: { ...appState.prefs.ollama, enabled: v } })}
+          />
+          {appState.prefs.ollama.enabled && (
+            <div className="ollama-fields">
+              <label>
+                <span className="muted small">Server URL</span>
+                <input
+                  value={appState.prefs.ollama.baseUrl}
+                  spellCheck={false}
+                  onChange={(e) => onPrefs({ ollama: { ...appState.prefs.ollama, baseUrl: e.target.value } })}
+                />
+              </label>
+              <label>
+                <span className="muted small">Model</span>
+                <input
+                  value={appState.prefs.ollama.model}
+                  spellCheck={false}
+                  onChange={(e) => onPrefs({ ollama: { ...appState.prefs.ollama, model: e.target.value } })}
+                />
+              </label>
+            </div>
+          )}
+        </section>
+
+        <section>
           <h3>Keyboard shortcuts</h3>
           <ul className="hotkeys">
             {(Object.keys(HOTKEYS) as HotkeyAction[]).map((a) => (

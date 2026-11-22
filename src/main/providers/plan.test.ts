@@ -35,4 +35,15 @@ describe('buildPlan', () => {
   it('returns nothing when no key is available', () => {
     expect(buildPlan({ available: [], withScreen: false, smart: false })).toEqual([])
   })
+
+  it('appends Ollama as the last fallback when enabled', () => {
+    expect(buildPlan({ available: ['groq'], withScreen: false, smart: false, ollamaModel: 'llama3.2' })).toEqual([
+      { provider: 'groq', model: MODELS.groqFast },
+      { provider: 'ollama', model: 'llama3.2' }
+    ])
+    // With no cloud key, Ollama alone can still answer offline.
+    expect(buildPlan({ available: [], withScreen: false, smart: false, ollamaModel: 'llama3.2' })).toEqual([
+      { provider: 'ollama', model: 'llama3.2' }
+    ])
+  })
 })

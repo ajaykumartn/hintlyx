@@ -40,8 +40,10 @@ export function isAskRequest(value: unknown): value is AskRequest {
 }
 
 /** Streaming events sent from main to the overlay for one ask. */
+export type AnswerProvider = Provider | 'ollama'
+
 export type AnswerEvent =
-  | { id: string; kind: 'start'; provider: Provider; model: string }
+  | { id: string; kind: 'start'; provider: AnswerProvider; model: string }
   | { id: string; kind: 'delta'; text: string }
   | { id: string; kind: 'done'; totalMs: number }
   | { id: string; kind: 'error'; message: string }
@@ -51,7 +53,9 @@ export class ProviderError extends Error {
     message: string,
     /** true when another provider should be tried (rate limit, 5xx, network). */
     readonly retryable: boolean,
-    readonly status?: number
+    readonly status?: number,
+    /** Server-requested wait before retrying, in ms (from Retry-After), when given. */
+    readonly retryAfterMs?: number
   ) {
     super(message)
     this.name = 'ProviderError'

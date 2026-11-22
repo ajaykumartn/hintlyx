@@ -1,6 +1,15 @@
 import { ProviderError } from '../../shared/llm'
 import { SseParser } from './sse'
 
+/** Reads the Retry-After header (seconds or HTTP date) into milliseconds, if present. */
+export function parseRetryAfter(header: string | null): number | undefined {
+  if (!header) return undefined
+  const seconds = Number(header)
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000)
+  const date = Date.parse(header)
+  return Number.isFinite(date) ? Math.max(0, date - Date.now()) : undefined
+}
+
 /** Maps a failed HTTP response to a ProviderError, reading the body for a message. */
 export async function httpError(res: Response, provider: string): Promise<ProviderError> {
   let detail = ''
@@ -11,15 +20,17 @@ export async function httpError(res: Response, provider: string): Promise<Provid
   } catch {
     /* keep detail empty */
   }
-  // 429 (rate limit) and 5xx are worth trying the other provider. 401/400 are not.
+  // 429 (rate limit) and 5xx are worth retrying or trying the other provider. 401/400 are not.
   const retryable = res.status === 429 || res.status >= 500
   const base =
     res.status === 401
       ? `${provider}: the API key was rejected`
       : res.status === 429
-        ? `${provider}: rate limit reached`
-        : `${provider}: request failed (${res.status})`
-  return new ProviderError(detail ? `${base} — ${detail}` : base, retryable, res.status)
+        ? `${provider}: rate limit reached, trying a fallback`
+        : res.status >= 500
+          ? `${provider}: the service is temporarily unavailable`
+          : `${provider}: request failed (${res.status})`
+  return new ProviderError(detail ? `${base} — ${detail}` : base, retryable, res.status, parseRetryAfter(res.headers.get('retry-after')))
 }
 
 /** Reads a fetch response body as decoded text chunks. */
@@ -58,6 +69,38 @@ export async function* streamSse(
     if (payload === '[DONE]') return
     const delta = extract(payload)
     if (delta) yield delta
+  }
+}
+
+/** Streams a newline-delimited JSON response (used by Ollama), yielding extracted text. */
+export async function* streamNdjson(
+  res: Response,
+  extract: (obj: unknown) => string | null
+): AsyncGenerator<string> {
+  let buffer = ''
+  for await (const chunk of readTextChunks(res)) {
+    buffer += chunk
+    let nl: number
+    while ((nl = buffer.indexOf('\n')) !== -1) {
+      const line = buffer.slice(0, nl).trim()
+      buffer = buffer.slice(nl + 1)
+      if (!line) continue
+      try {
+        const delta = extract(JSON.parse(line))
+        if (delta) yield delta
+      } catch {
+        /* ignore a malformed line */
+      }
+    }
+  }
+  const last = buffer.trim()
+  if (last) {
+    try {
+      const delta = extract(JSON.parse(last))
+      if (delta) yield delta
+    } catch {
+      /* ignore */
+    }
   }
 }
 

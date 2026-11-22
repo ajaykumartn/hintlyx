@@ -1,7 +1,10 @@
 import type { Provider } from '../../shared/ipc'
 
+/** Providers that can run a completion: the keyed cloud ones plus local Ollama. */
+export type ChoiceProvider = Provider | 'ollama'
+
 export interface ProviderChoice {
-  provider: Provider
+  provider: ChoiceProvider
   /** The model id to use for this attempt. */
   model: string
 }
@@ -13,6 +16,8 @@ export interface PlanInput {
   withScreen: boolean
   /** Smart mode: prefer the stronger (slower) model. */
   smart: boolean
+  /** Ollama model id when the offline fallback is enabled, else undefined. */
+  ollamaModel?: string
 }
 
 export const MODELS = {
@@ -37,17 +42,20 @@ function geminiChoices(): ProviderChoice[] {
  * - Text questions prefer Groq for speed, then fall back to Gemini.
  * Returns an empty list when no usable key is available.
  */
-export function buildPlan({ available, withScreen, smart }: PlanInput): ProviderChoice[] {
+export function buildPlan({ available, withScreen, smart, ollamaModel }: PlanInput): ProviderChoice[] {
   const has = (p: Provider) => available.includes(p)
   const plan: ProviderChoice[] = []
 
   if (withScreen) {
     if (has('gemini')) plan.push(...geminiChoices())
+    // Ollama can read images only if its model is a vision model; offer it as a last resort.
+    if (ollamaModel) plan.push({ provider: 'ollama', model: ollamaModel })
     return plan
   }
 
   if (has('groq')) plan.push({ provider: 'groq', model: smart ? MODELS.groqSmart : MODELS.groqFast })
   if (has('gemini')) plan.push(...geminiChoices())
+  if (ollamaModel) plan.push({ provider: 'ollama', model: ollamaModel })
   return plan
 }
 
