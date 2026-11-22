@@ -6,17 +6,19 @@ import type { Mode } from './llm'
  */
 export function suggestPrompt(mode: Mode): string {
   return (
-    'You watch a live conversation and suggest what the user (the person using this assistant) ' +
-    `could usefully ask their AI copilot next. Context: ${mode}. ` +
-    'From the recent transcript, output 3 short suggestions, each on its own line. ' +
-    'Each suggestion is a question or action under 8 words, phrased as the user would ask the copilot ' +
-    '(for example: "Explain their last point", "Draft a reply", "What should I ask back?"). ' +
-    'No numbering, no bullets, no quotes, no extra text. If nothing useful, output nothing.'
+    'You read a live transcript of a conversation. Identify what the OTHER person (not the user of ' +
+    `this assistant) is asking the user to answer right now. Context: ${mode}. ` +
+    'Output up to 2 items, each on its own line, written as a clear standalone question or request ' +
+    'that the user should respond to. Rewrite it so it makes sense on its own: resolve vague words ' +
+    'like "it", "they" or "that" using the conversation, and phrase it as the exact question to answer ' +
+    '(for example: "How would you design a URL shortener to scale?", "Why did you leave your last job?"). ' +
+    'Keep each under 14 words. If there is no clear question, output one short action such as ' +
+    '"Summarise the discussion". No numbering, no bullets, no quotes, no extra text.'
   )
 }
 
 const MAX_SUGGESTIONS = 3
-const MAX_LEN = 60
+const MAX_LEN = 90
 
 /** Parses the model's lines into clean, de-duplicated suggestions. */
 export function parseSuggestions(text: string): string[] {

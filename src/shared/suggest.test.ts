@@ -16,7 +16,7 @@ describe('parseSuggestions', () => {
       'Summarise this',
       'summarise this', // duplicate (case-insensitive)
       '',
-      'x'.repeat(80), // too long
+      'x'.repeat(120), // too long
       'Ask about budget',
       'One more thing',
       'And another' // beyond the cap of 3
