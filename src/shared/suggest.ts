@@ -8,12 +8,13 @@ export function suggestPrompt(mode: Mode): string {
   return (
     'You read a live transcript of a conversation. Identify what the OTHER person (not the user of ' +
     `this assistant) is asking the user to answer right now. Context: ${mode}. ` +
-    'Output up to 2 items, each on its own line, written as a clear standalone question or request ' +
-    'that the user should respond to. Rewrite it so it makes sense on its own: resolve vague words ' +
-    'like "it", "they" or "that" using the conversation, and phrase it as the exact question to answer ' +
+    'Focus on the MOST RECENT question and put it first. Output up to 2 items, each on its own line, ' +
+    'written as a clear standalone question or request that the user should respond to. Rewrite it so ' +
+    'it makes sense on its own: resolve vague words like "it", "they" or "that" using the conversation, ' +
+    'and phrase it as the exact question to answer ' +
     '(for example: "How would you design a URL shortener to scale?", "Why did you leave your last job?"). ' +
-    'Keep each under 14 words. If there is no clear question, output one short action such as ' +
-    '"Summarise the discussion". No numbering, no bullets, no quotes, no extra text.'
+    'Keep each under 16 words. Ignore filler like "thank you". If there is no clear question, output one ' +
+    'short action such as "Summarise the discussion". No numbering, no bullets, no quotes, no extra text.'
   )
 }
 

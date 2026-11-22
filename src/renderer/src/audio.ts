@@ -4,8 +4,8 @@ import { concatFloat32, rms, toWav16k } from '@shared/audio'
 const CHUNK_MS = 4500
 /** Carry this much audio into the next clip so words at the boundary are not lost. */
 const OVERLAP_MS = 400
-/** Skip clips quieter than this (silence), to avoid spending quota on nothing. */
-const SILENCE_RMS = 0.004
+/** Skip clips quieter than this. Higher cuts most silence-driven Whisper hallucinations. */
+const SILENCE_RMS = 0.01
 const SCRIPT_BUFFER = 4096
 
 export interface CaptureCallbacks {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { dedupeWords, shouldAppend } from '@shared/transcript'
 import { AudioCapture } from './audio'
 
 export interface TranscriptLine {
@@ -30,8 +31,11 @@ export function useTranscription(listening: boolean): Transcription {
     if (!listening) return
     setError(null)
     const capture = new AudioCapture({
-      onText: (text) =>
+      onText: (raw) =>
         setLines((prev) => {
+          const text = dedupeWords(raw)
+          // Drop Whisper hallucinations and near-duplicate overlap tails.
+          if (!shouldAppend(text, prev[prev.length - 1]?.text)) return prev
           const next = [...prev, { id: nextId.current++, text }]
           return next.length > MAX_LINES ? next.slice(next.length - MAX_LINES) : next
         }),
