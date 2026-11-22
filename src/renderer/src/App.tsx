@@ -88,7 +88,7 @@ export function App() {
   const latest = useRef({ ask, answerFromScreen, suggestions })
   latest.current = { ask, answerFromScreen, suggestions }
 
-  // Tab runs the top suggestion (like Cluely), unless typing in the ask bar.
+  // Tab runs the top suggestion, unless typing in the ask bar.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return
