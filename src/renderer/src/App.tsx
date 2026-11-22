@@ -6,8 +6,10 @@ import { FakeCursor } from './FakeCursor'
 import { SettingsCard } from './SettingsCard'
 import { Tooltip } from './Tooltip'
 import { useMouseThrough } from './useOverlayInput'
+import { useTranscription } from './useTranscription'
 
 const CAPTURE_MARKER = new URLSearchParams(location.search).get('marker') === '1'
+const AUTO_LISTEN = new URLSearchParams(location.search).get('autolisten') === '1'
 
 const PROVIDER_LABEL: Record<string, string> = { groq: 'Groq', gemini: 'Gemini' }
 
@@ -25,6 +27,15 @@ export function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const nextId = useRef(1)
   const cardRef = useRef<AskCardHandle>(null)
+  const transcription = useTranscription(listening)
+
+  // Dev-only: auto-start listening so the capture chain can be tested without clicking.
+  useEffect(() => {
+    if (AUTO_LISTEN) {
+      setListening(true)
+      setCardOpen(true)
+    }
+  }, [])
 
   useEffect(() => {
     void window.hintlyx.getState().then(setAppState)
@@ -60,7 +71,8 @@ export function App() {
     setMessages((m) => [...m, userMsg, answerMsg])
 
     const requestId = `req-${answerMsg.id}`
-    window.hintlyx.ask({ id: requestId, mode, question, history, withScreen, smart: smartMode })
+    const transcript = listening ? transcription.recentText() : undefined
+    window.hintlyx.ask({ id: requestId, mode, question, history, withScreen, smart: smartMode, transcript })
   }
 
   const ask = (text: string) => runAsk(text, false)
@@ -158,6 +170,8 @@ export function App() {
             onModeChange={setMode}
             messages={messages}
             listening={listening}
+            transcript={transcription.lines}
+            transcriptError={transcription.error}
             smartMode={smartMode}
             onToggleSmart={() => setSmartMode((s) => !s)}
             invisible={appState.prefs.invisible}

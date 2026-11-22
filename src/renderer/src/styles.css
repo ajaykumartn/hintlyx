@@ -337,6 +337,27 @@ kbd {
   gap: 10px;
 }
 
+.transcript {
+  line-height: 1.7;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.transcript span:last-child {
+  color: var(--text);
+}
+
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  vertical-align: middle;
+  animation: blink 1.2s step-end infinite;
+}
+
 .caret {
   display: inline-block;
   width: 7px;

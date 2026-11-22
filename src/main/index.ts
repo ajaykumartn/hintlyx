@@ -1,6 +1,14 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, ipcMain, safeStorage, screen, type IpcMainEvent, type IpcMainInvokeEvent } from 'electron'
-import { INITIAL_STATE, IPC, isProvider, type AppState, type OverlayCommand, type SettingsView } from '../shared/ipc'
+import { app, BrowserWindow, ipcMain, safeStorage, screen, session, type IpcMainEvent, type IpcMainInvokeEvent } from 'electron'
+import {
+  INITIAL_STATE,
+  IPC,
+  isProvider,
+  type AppState,
+  type OverlayCommand,
+  type SettingsView,
+  type TranscribeResult
+} from '../shared/ipc'
 import { createTimer, formatReport, pushLimited, type TimingReport } from '../shared/timing'
 import { fileStorage } from './fileStorage'
 import { registerHotkeys, unregisterHotkeys } from './hotkeys'
@@ -10,6 +18,8 @@ import { KeyStore } from './keyStore'
 import { LlmService } from './llm'
 import { PrefsStore } from './prefs'
 import { captureScreenBase64 } from './screenshot'
+import { transcribeWav } from './providers/transcribe'
+import { enableSystemAudioLoopback } from './audioLoopback'
 import { createOverlayWindow, MOVE_STEP, moveWindowBy, setWindowPosition } from './window'
 
 let win: BrowserWindow | null = null
@@ -203,6 +213,19 @@ function registerIpc(): void {
   on(IPC.cancelAsk, (id: unknown) => {
     if (typeof id === 'string') inFlight.get(id)?.abort()
   })
+  handle(IPC.transcribe, async (wav: unknown): Promise<TranscribeResult> => {
+    if (!(wav instanceof ArrayBuffer) && !ArrayBuffer.isView(wav)) return { text: '', error: 'bad audio data' }
+    const buffer = wav instanceof ArrayBuffer ? wav : (wav as ArrayBufferView).buffer as ArrayBuffer
+    const apiKey = keyStore.get('groq')
+    if (!apiKey) return { text: '', error: 'Add a Groq API key in Settings to enable listening.' }
+    try {
+      const text = await transcribeWav(buffer, apiKey, { language: 'en' })
+      if (process.env['HINTLYX_AUTOLISTEN'] === '1' && text) console.log(`[transcript] ${text}`)
+      return { text }
+    } catch (err) {
+      return { text: '', error: err instanceof Error ? err.message : String(err) }
+    }
+  })
 }
 
 if (!app.requestSingleInstanceLock()) {
@@ -227,9 +250,19 @@ if (!app.requestSingleInstanceLock()) {
     t.mark('stores')
 
     registerIpc()
+    enableSystemAudioLoopback()
+    // Allow the overlay to use the microphone and system-audio/screen loopback capture only.
+    const allowedPermissions = new Set(['media', 'display-capture', 'audioCapture'])
+    session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
+      callback(allowedPermissions.has(permission))
+    })
+    session.defaultSession.setPermissionCheckHandler((_wc, permission) => allowedPermissions.has(permission))
     win = createOverlayWindow({ captureMarker: process.env['HINTLYX_CAPTURE_TEST'] === '1' })
     // Protection goes on before the window is ever shown, so no frame leaks.
     applyPrefs()
+    if (process.env['HINTLYX_AUTOLISTEN'] === '1') {
+      win.webContents.on('console-message', (_e, _level, message) => console.log(`[renderer] ${message}`))
+    }
     win.on('show', enforceInvisibility)
     win.on('restore', enforceInvisibility)
     win.on('moved', enforceInvisibility)

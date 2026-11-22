@@ -49,7 +49,9 @@ export function createOverlayWindow(opts: { captureMarker?: boolean } = {}): Bro
   win.webContents.on('will-navigate', (event) => event.preventDefault())
 
   // Capture test mode draws a solid magenta block so captures can be checked pixel by pixel.
-  const query: Record<string, string> = opts.captureMarker ? { marker: '1' } : {}
+  const query: Record<string, string> = {}
+  if (opts.captureMarker) query['marker'] = '1'
+  if (process.env['HINTLYX_AUTOLISTEN'] === '1') query['autolisten'] = '1'
   const devUrl = process.env['ELECTRON_RENDERER_URL']
   if (!app.isPackaged && devUrl) {
     const url = new URL(devUrl)

@@ -25,6 +25,7 @@ const api: HintlyxApi = {
   },
   ask: (request) => ipcRenderer.send(IPC.ask, request),
   cancelAsk: (id) => ipcRenderer.send(IPC.cancelAsk, id),
+  transcribe: (wav) => ipcRenderer.invoke(IPC.transcribe, wav),
   onAnswer: (listener) => {
     const wrapped = (_event: unknown, ev: AnswerEvent) => listener(ev)
     ipcRenderer.on(IPC.answer, wrapped)

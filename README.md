@@ -14,7 +14,10 @@ Phase 1 (app shell) is done:
 - Invisibility: hide from screen share and taskbar (off by default, remembered between runs). The mouse pointer is also hidden from the share while it is over Hintlyx; you still see a pointer drawn inside the overlay.
 - Global hotkeys and a speed log
 
-AI answers (phase 2) and live transcription (phase 3) are not connected yet.
+Live answers and live transcription are connected:
+
+- **Answers** stream from Groq (`openai/gpt-oss-20b`, or `gpt-oss-120b` in smart mode), falling back to Google Gemini. Screen questions go to Gemini vision. First token typically under 1.5s.
+- **Listening** captures system audio (the other person) and your microphone, transcribes it with Groq Whisper Turbo, and shows a live transcript. The transcript is sent as context when you ask.
 
 ## Shortcuts
 
@@ -24,6 +27,15 @@ AI answers (phase 2) and live transcription (phase 3) are not connected yet.
 | `Ctrl + Enter` | Ask AI (opens the ask bar, or submits what you typed) |
 | `Ctrl + Shift + Enter` | Answer from screen |
 | `Ctrl + Alt + Arrow keys` | Move Hintlyx |
+
+## Models
+
+| Job | Model | Notes |
+|---|---|---|
+| Fast text | Groq `openai/gpt-oss-20b` | ~1000 tokens/sec |
+| Smart mode | Groq `openai/gpt-oss-120b` | deeper answers |
+| Screen / vision, fallback | Gemini `gemini-flash-latest` (then `-lite`) | auto-updating alias |
+| Transcription | Groq `whisper-large-v3-turbo` | 16 kHz mono clips |
 
 ## Develop
 

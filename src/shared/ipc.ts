@@ -56,7 +56,9 @@ export const IPC = {
   quit: 'app:quit',
   ask: 'llm:ask',
   cancelAsk: 'llm:cancel',
-  answer: 'llm:answer'
+  answer: 'llm:answer',
+  transcribe: 'audio:transcribe',
+  audioError: 'audio:error'
 } as const
 
 /** Commands the main process sends to the overlay (usually from a hotkey). */
@@ -118,5 +120,12 @@ export interface HintlyxApi {
   ask(request: AskRequest): void
   cancelAsk(id: string): void
   onAnswer(listener: (event: AnswerEvent) => void): () => void
+  /** Transcribes a 16 kHz mono WAV clip, returning the recognised text (empty for silence). */
+  transcribe(wav: ArrayBuffer): Promise<TranscribeResult>
   quit(): void
+}
+
+export interface TranscribeResult {
+  text: string
+  error?: string
 }

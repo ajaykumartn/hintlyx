@@ -39,7 +39,7 @@ export class LlmService {
     const completion: Omit<CompletionRequest, 'signal'> = {
       system: systemPrompt(req.mode, req.smart),
       history: trimHistory(req.history),
-      user: userPrompt(req.question, req.withScreen),
+      user: userPrompt(req.question, req.withScreen, req.transcript),
       imageBase64: req.withScreen ? imageBase64 : undefined,
       mode: req.mode
     }

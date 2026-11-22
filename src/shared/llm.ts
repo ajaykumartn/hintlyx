@@ -21,6 +21,8 @@ export interface AskRequest {
   history: ChatTurn[]
   withScreen: boolean
   smart: boolean
+  /** Recent live transcript of the conversation, used as context when present. */
+  transcript?: string
 }
 
 export function isAskRequest(value: unknown): value is AskRequest {
@@ -32,7 +34,8 @@ export function isAskRequest(value: unknown): value is AskRequest {
     typeof r['question'] === 'string' &&
     Array.isArray(r['history']) &&
     typeof r['withScreen'] === 'boolean' &&
-    typeof r['smart'] === 'boolean'
+    typeof r['smart'] === 'boolean' &&
+    (r['transcript'] === undefined || typeof r['transcript'] === 'string')
   )
 }
 

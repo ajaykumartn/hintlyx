@@ -41,12 +41,23 @@ export function trimHistory(history: ChatTurn[]): ChatTurn[] {
     .map((t) => ({ role: t.role, text: clip(t.text, MAX_TURN_CHARS) }))
 }
 
-export function userPrompt(question: string, withScreen: boolean): string {
+const MAX_TRANSCRIPT_CHARS = 2000
+
+export function userPrompt(question: string, withScreen: boolean, transcript?: string): string {
   const q = question.trim()
+  const context = transcript?.trim()
+    ? `Recent conversation (live transcript, may have small errors):\n${clip(transcript, MAX_TRANSCRIPT_CHARS)}\n\n`
+    : ''
+
+  let core: string
   if (withScreen) {
-    return q
+    core = q
       ? `Looking at my screen: ${q}`
       : 'Look at my screen and tell me what to do or say next. If it is a question or problem, answer it.'
+  } else if (!q && context) {
+    core = 'Based on the conversation above, what should I say next?'
+  } else {
+    core = q
   }
-  return q
+  return context + core
 }

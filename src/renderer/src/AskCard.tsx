@@ -28,6 +28,8 @@ interface Props {
   onModeChange(mode: Mode): void
   messages: Message[]
   listening: boolean
+  transcript: { id: number; text: string }[]
+  transcriptError: string | null
   smartMode: boolean
   onToggleSmart(): void
   invisible: boolean
@@ -113,17 +115,26 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
           )}
           <button className="text-btn" onClick={() => setShowTranscript((s) => !s)}>
             {showTranscript ? 'Show answers' : 'Show transcript'}
+            {p.listening && !showTranscript && <span className="live-dot" />}
           </button>
         </div>
       </div>
 
       <div className="card-body" ref={scrollRef}>
         {showTranscript ? (
-          <p className="empty">
-            {p.listening
-              ? 'Listening is on. Live transcription is added in phase 3.'
-              : 'Turn on listening to see the live transcript here.'}
-          </p>
+          p.transcriptError ? (
+            <p className="empty warn">{p.transcriptError}</p>
+          ) : !p.listening ? (
+            <p className="empty">Turn on listening to capture the conversation here.</p>
+          ) : p.transcript.length === 0 ? (
+            <p className="empty">Listening… the transcript appears here as people talk.</p>
+          ) : (
+            <div className="transcript">
+              {p.transcript.map((line) => (
+                <span key={line.id}>{line.text} </span>
+              ))}
+            </div>
+          )
         ) : p.messages.length === 0 ? (
           <p className="empty">
             Ask about your screen or conversation. Press <kbd>Ctrl</kbd> <kbd>Enter</kbd> from any app.
