@@ -6,3 +6,6 @@ release/
 .env
 .env.*
 .DS_Store
+
+# dev-only key seeding helper
+scripts/seed-keys.cjs

@@ -1,13 +1,19 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { MODES, type Mode } from '@shared/llm'
 import { BadgeCheck, Bolt, ChatQ, Check, Chevron, Copy, Eye, EyeOff, Lines, Monitor, Recap } from './icons'
 
-export const MODES = ['Interview practice', 'Meeting', 'Lecture', 'Coding help'] as const
-export type Mode = (typeof MODES)[number]
+export type { Mode }
+export { MODES }
 
 export interface Message {
   id: number
   role: 'user' | 'assistant'
   text: string
+  /** Assistant message still receiving tokens. */
+  streaming?: boolean
+  /** Which provider answered, shown as a small label. */
+  provider?: string
+  error?: boolean
 }
 
 export const QUICK_ACTIONS = [
@@ -129,11 +135,19 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
                 {m.text}
               </div>
             ) : (
-              <div key={m.id} className="answer">
-                <p>{m.text}</p>
-                <button className="mini-btn" onClick={() => void copy(m)}>
-                  <Copy size={14} /> {copied === m.id ? 'Copied' : 'Copy'}
-                </button>
+              <div key={m.id} className={`answer${m.error ? ' error' : ''}`}>
+                <p>
+                  {m.text}
+                  {m.streaming && <span className="caret" />}
+                </p>
+                {!m.streaming && !m.error && m.text && (
+                  <div className="answer-foot">
+                    {m.provider && <span className="muted small">{m.provider}</span>}
+                    <button className="mini-btn" onClick={() => void copy(m)}>
+                      <Copy size={14} /> {copied === m.id ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                )}
               </div>
             )
           )

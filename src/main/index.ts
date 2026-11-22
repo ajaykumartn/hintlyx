@@ -4,16 +4,22 @@ import { INITIAL_STATE, IPC, isProvider, type AppState, type OverlayCommand, typ
 import { createTimer, formatReport, pushLimited, type TimingReport } from '../shared/timing'
 import { fileStorage } from './fileStorage'
 import { registerHotkeys, unregisterHotkeys } from './hotkeys'
+import { isAskRequest, type AnswerEvent, type AskRequest } from '../shared/llm'
 import { applyInvisibility } from './invisibility'
 import { KeyStore } from './keyStore'
+import { LlmService } from './llm'
 import { PrefsStore } from './prefs'
+import { captureScreenBase64 } from './screenshot'
 import { createOverlayWindow, MOVE_STEP, moveWindowBy, setWindowPosition } from './window'
 
 let win: BrowserWindow | null = null
 let keyStore: KeyStore
 let prefsStore: PrefsStore
+let llm: LlmService
 let timings: TimingReport[] = []
 let dragOrigin: [number, number] | null = null
+/** In-flight asks, so each can be cancelled by id. */
+const inFlight = new Map<string, AbortController>()
 const state: AppState = structuredClone(INITIAL_STATE)
 
 /** Applies invisibility and taskbar settings, then confirms them with the OS. */
@@ -82,6 +88,65 @@ function settingsView(): SettingsView {
   return { encryptionAvailable: keyStore.encryptionAvailable, keys: keyStore.status() }
 }
 
+/**
+ * Captures the screen with the overlay excluded, so Hintlyx never appears in the shot sent
+ * to the model. Content protection removes the window from capture; we enable it just for the
+ * capture if the user does not already run invisible, then restore the previous state.
+ */
+async function captureCleanScreenshot(): Promise<string | null> {
+  if (!win) return null
+  const wasProtected = win.isContentProtected()
+  if (!wasProtected) {
+    win.setContentProtection(true)
+    // The exclusion applies on the next desktop composition, not immediately.
+    await new Promise((r) => setTimeout(r, 90))
+  }
+  try {
+    const [x, y] = win.getPosition()
+    return await captureScreenBase64({ x, y })
+  } finally {
+    if (!wasProtected && win && !win.isDestroyed()) win.setContentProtection(false)
+  }
+}
+
+function sendAnswer(event: AnswerEvent): void {
+  win?.webContents.send(IPC.answer, event)
+}
+
+async function handleAsk(request: AskRequest): Promise<void> {
+  // A new ask with the same id cancels the previous one.
+  inFlight.get(request.id)?.abort()
+  const controller = new AbortController()
+  inFlight.set(request.id, controller)
+
+  const timer = createTimer(`ask:${request.withScreen ? 'screen' : 'text'}`)
+  try {
+    let image: string | undefined
+    if (request.withScreen) {
+      image = (await captureCleanScreenshot()) ?? undefined
+      timer.mark('screenshot')
+      if (!image) {
+        sendAnswer({ id: request.id, kind: 'error', message: 'Could not capture the screen.' })
+        return
+      }
+    }
+    let firstToken = true
+    for await (const event of llm.answer(request, image, controller.signal)) {
+      if (controller.signal.aborted) break
+      if (event.kind === 'delta' && firstToken) {
+        firstToken = false
+        timer.mark('first-token')
+      }
+      sendAnswer(event)
+    }
+  } catch (err) {
+    sendAnswer({ id: request.id, kind: 'error', message: err instanceof Error ? err.message : String(err) })
+  } finally {
+    record(timer.end())
+    inFlight.delete(request.id)
+  }
+}
+
 /** Only accept IPC from our own overlay window. */
 function fromOverlay(event: IpcMainEvent | IpcMainInvokeEvent): boolean {
   return win !== null && event.sender === win.webContents
@@ -131,6 +196,13 @@ function registerIpc(): void {
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return
     setWindowPosition(win, dragOrigin[0] + dx, dragOrigin[1] + dy)
   })
+  on(IPC.ask, (request: unknown) => {
+    if (!isAskRequest(request)) return
+    void handleAsk(request)
+  })
+  on(IPC.cancelAsk, (id: unknown) => {
+    if (typeof id === 'string') inFlight.get(id)?.abort()
+  })
 }
 
 if (!app.requestSingleInstanceLock()) {
@@ -151,6 +223,7 @@ if (!app.requestSingleInstanceLock()) {
     )
     prefsStore = new PrefsStore(fileStorage(join(app.getPath('userData'), 'prefs.json')))
     state.prefs = prefsStore.get()
+    llm = new LlmService({ get: (p) => keyStore.get(p) })
     t.mark('stores')
 
     registerIpc()

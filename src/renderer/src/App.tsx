@@ -9,8 +9,7 @@ import { useMouseThrough } from './useOverlayInput'
 
 const CAPTURE_MARKER = new URLSearchParams(location.search).get('marker') === '1'
 
-const NOT_CONNECTED =
-  'Hintlyx is not connected to an AI model yet. Answers from Groq and Gemini are added in phase 2.'
+const PROVIDER_LABEL: Record<string, string> = { groq: 'Groq', gemini: 'Gemini' }
 
 export function App() {
   useMouseThrough()
@@ -41,17 +40,56 @@ export function App() {
     return () => clearInterval(id)
   }, [sessionStart])
 
-  const ask = (text: string) => {
+  // The assistant message currently receiving tokens, so streaming deltas find their target.
+  const streamingId = useRef<number | null>(null)
+
+  const updateMessage = (id: number, patch: Partial<Message>) =>
+    setMessages((list) => list.map((m) => (m.id === id ? { ...m, ...patch } : m)))
+
+  const runAsk = (question: string, withScreen: boolean) => {
     setCardOpen(true)
     setSettingsOpen(false)
-    setMessages((m) => [
-      ...m,
-      { id: nextId.current++, role: 'user', text },
-      { id: nextId.current++, role: 'assistant', text: NOT_CONNECTED }
-    ])
+
+    const history = messages
+      .filter((m) => !m.error && !m.streaming)
+      .map((m) => ({ role: m.role, text: m.text }))
+
+    const userMsg: Message = { id: nextId.current++, role: 'user', text: withScreen && !question ? 'Answer from my screen' : question }
+    const answerMsg: Message = { id: nextId.current++, role: 'assistant', text: '', streaming: true }
+    streamingId.current = answerMsg.id
+    setMessages((m) => [...m, userMsg, answerMsg])
+
+    const requestId = `req-${answerMsg.id}`
+    window.hintlyx.ask({ id: requestId, mode, question, history, withScreen, smart: smartMode })
   }
 
-  const answerFromScreen = () => ask('Answer from my screen')
+  const ask = (text: string) => runAsk(text, false)
+  const answerFromScreen = () => runAsk('', true)
+
+  // The hotkey handler is registered once, so keep the latest ask functions in a ref.
+  const latest = useRef({ ask, answerFromScreen })
+  latest.current = { ask, answerFromScreen }
+
+  // Stream answer events from the main process into the current assistant message.
+  useEffect(() => {
+    return window.hintlyx.onAnswer((event) => {
+      const id = streamingId.current
+      if (id === null) return
+      if (event.kind === 'start') {
+        updateMessage(id, { provider: PROVIDER_LABEL[event.provider] ?? event.provider })
+      } else if (event.kind === 'delta') {
+        setMessages((list) => list.map((m) => (m.id === id ? { ...m, text: m.text + event.text } : m)))
+      } else if (event.kind === 'done') {
+        updateMessage(id, { streaming: false })
+        streamingId.current = null
+      } else if (event.kind === 'error') {
+        setMessages((list) =>
+          list.map((m) => (m.id === id ? { ...m, text: event.message, streaming: false, error: true } : m))
+        )
+        streamingId.current = null
+      }
+    })
+  }, [])
 
   // Global hotkeys arrive from the main process.
   useEffect(() => {
@@ -59,7 +97,7 @@ export function App() {
       setCardOpen(true)
       setSettingsOpen(false)
       if (command === 'answer-from-screen') {
-        answerFromScreen()
+        latest.current.answerFromScreen()
         return
       }
       // Ctrl+Enter: submit what is typed, otherwise focus the ask bar.

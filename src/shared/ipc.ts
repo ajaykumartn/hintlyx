@@ -1,3 +1,4 @@
+import type { AnswerEvent, AskRequest } from './llm'
 import type { TimingReport } from './timing'
 
 export const PROVIDERS = ['groq', 'gemini'] as const
@@ -52,7 +53,10 @@ export const IPC = {
   getTimings: 'timing:list',
   setPrefs: 'prefs:set',
   state: 'app:state',
-  quit: 'app:quit'
+  quit: 'app:quit',
+  ask: 'llm:ask',
+  cancelAsk: 'llm:cancel',
+  answer: 'llm:answer'
 } as const
 
 /** Commands the main process sends to the overlay (usually from a hotkey). */
@@ -111,5 +115,8 @@ export interface HintlyxApi {
   onCommand(listener: (command: OverlayCommand) => void): () => void
   setPrefs(patch: Partial<Preferences>): Promise<AppState>
   onState(listener: (state: AppState) => void): () => void
+  ask(request: AskRequest): void
+  cancelAsk(id: string): void
+  onAnswer(listener: (event: AnswerEvent) => void): () => void
   quit(): void
 }

@@ -327,6 +327,32 @@ kbd {
   white-space: pre-wrap;
 }
 
+.answer.error p {
+  color: var(--warn);
+}
+
+.answer-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.caret {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--blue-hi);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 .mini-btn {
   display: inline-flex;
   align-items: center;
