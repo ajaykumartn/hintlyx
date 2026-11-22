@@ -16,6 +16,7 @@ export function createOverlayWindow(opts: { captureMarker?: boolean } = {}): Bro
 
   const win = new BrowserWindow({
     title: 'Hintlyx',
+    icon: app.isPackaged ? undefined : join(__dirname, '../../resources/icon.ico'),
     width: WIDTH,
     height: HEIGHT,
     x: Math.round(workArea.x + (workArea.width - WIDTH) / 2),

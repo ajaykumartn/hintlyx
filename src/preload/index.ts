@@ -27,6 +27,10 @@ const api: HintlyxApi = {
   cancelAsk: (id) => ipcRenderer.send(IPC.cancelAsk, id),
   transcribe: (wav) => ipcRenderer.invoke(IPC.transcribe, wav),
   suggest: (transcript, mode) => ipcRenderer.invoke(IPC.suggest, transcript, mode),
+  saveSession: (record) => ipcRenderer.send(IPC.saveSession, record),
+  listSessions: () => ipcRenderer.invoke(IPC.listSessions),
+  getSession: (id) => ipcRenderer.invoke(IPC.getSession, id),
+  deleteSession: (id) => ipcRenderer.invoke(IPC.deleteSession, id),
   onAnswer: (listener) => {
     const wrapped = (_event: unknown, ev: AnswerEvent) => listener(ev)
     ipcRenderer.on(IPC.answer, wrapped)

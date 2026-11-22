@@ -17,6 +17,7 @@ import { applyInvisibility } from './invisibility'
 import { KeyStore } from './keyStore'
 import { LlmService } from './llm'
 import { PrefsStore } from './prefs'
+import { SessionStore } from './sessionStore'
 import { captureScreenBase64 } from './screenshot'
 import { transcribeWav } from './providers/transcribe'
 import { enableSystemAudioLoopback } from './audioLoopback'
@@ -25,6 +26,7 @@ import { createOverlayWindow, MOVE_STEP, moveWindowBy, setWindowPosition } from 
 let win: BrowserWindow | null = null
 let keyStore: KeyStore
 let prefsStore: PrefsStore
+let sessionStore: SessionStore
 let llm: LlmService
 let timings: TimingReport[] = []
 let dragOrigin: [number, number] | null = null
@@ -215,6 +217,13 @@ function registerIpc(): void {
   on(IPC.cancelAsk, (id: unknown) => {
     if (typeof id === 'string') inFlight.get(id)?.abort()
   })
+  on(IPC.saveSession, (record: unknown) => sessionStore.save(record))
+  handle(IPC.listSessions, () => sessionStore.list())
+  handle(IPC.getSession, (id: unknown) => (typeof id === 'string' ? sessionStore.get(id) : null))
+  handle(IPC.deleteSession, (id: unknown) => {
+    if (typeof id === 'string') sessionStore.remove(id)
+    return sessionStore.list()
+  })
   handle(IPC.suggest, async (transcript: unknown, mode: unknown): Promise<string[]> => {
     if (typeof transcript !== 'string' || !isMode(mode)) return []
     suggestAbort?.abort()
@@ -257,6 +266,7 @@ if (!app.requestSingleInstanceLock()) {
       fileStorage(join(app.getPath('userData'), 'keys.json'))
     )
     prefsStore = new PrefsStore(fileStorage(join(app.getPath('userData'), 'prefs.json')))
+    sessionStore = new SessionStore(fileStorage(join(app.getPath('userData'), 'sessions.json')))
     state.prefs = prefsStore.get()
     llm = new LlmService(
       { get: (p) => keyStore.get(p) },

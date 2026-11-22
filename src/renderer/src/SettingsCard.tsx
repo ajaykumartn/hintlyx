@@ -18,6 +18,7 @@ interface Props {
   appState: AppState
   onPrefs(patch: Partial<Preferences>): void
   onBack(): void
+  onOpenHistory(): void
 }
 
 function Toggle({ on, onChange, label, hint }: { on: boolean; onChange(v: boolean): void; label: string; hint: string }) {
@@ -46,7 +47,7 @@ function invisibilityClass({ invisibility }: AppState): string {
   return invisibility.active ? 'ok' : 'muted'
 }
 
-export function SettingsCard({ appState, onPrefs, onBack }: Props) {
+export function SettingsCard({ appState, onPrefs, onBack, onOpenHistory }: Props) {
   const [settings, setSettings] = useState<SettingsView | null>(null)
   const [drafts, setDrafts] = useState<Record<Provider, string>>({ groq: '', gemini: '' })
   const [error, setError] = useState<string | null>(null)
@@ -86,6 +87,13 @@ export function SettingsCard({ appState, onPrefs, onBack }: Props) {
       </div>
 
       <div className="card-body">
+        <section>
+          <button className="row-btn" onClick={onOpenHistory}>
+            <span>Session history</span>
+            <span className="muted">View past conversations →</span>
+          </button>
+        </section>
+
         <section>
           <h3>Invisibility</h3>
           <Toggle

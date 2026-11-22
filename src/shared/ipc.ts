@@ -59,7 +59,11 @@ export const IPC = {
   answer: 'llm:answer',
   transcribe: 'audio:transcribe',
   audioError: 'audio:error',
-  suggest: 'llm:suggest'
+  suggest: 'llm:suggest',
+  saveSession: 'session:save',
+  listSessions: 'session:list',
+  getSession: 'session:get',
+  deleteSession: 'session:delete'
 } as const
 
 /** Commands the main process sends to the overlay (usually from a hotkey). */
@@ -139,10 +143,33 @@ export interface HintlyxApi {
   transcribe(wav: ArrayBuffer): Promise<TranscribeResult>
   /** Suggests a few short things to ask next, from the recent transcript. [] on failure. */
   suggest(transcript: string, mode: Mode): Promise<string[]>
+  saveSession(record: SessionRecord): void
+  listSessions(): Promise<SessionSummary[]>
+  getSession(id: string): Promise<SessionRecord | null>
+  deleteSession(id: string): Promise<SessionSummary[]>
   quit(): void
 }
 
 export interface TranscribeResult {
   text: string
   error?: string
+}
+
+export interface SessionMessage {
+  role: 'user' | 'assistant'
+  text: string
+}
+
+export interface SessionSummary {
+  id: string
+  /** When the session was last saved (epoch ms). */
+  at: number
+  mode: string
+  title: string
+  qaCount: number
+}
+
+export interface SessionRecord extends Omit<SessionSummary, 'qaCount'> {
+  transcript: string
+  messages: SessionMessage[]
 }

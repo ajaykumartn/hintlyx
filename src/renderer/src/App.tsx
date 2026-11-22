@@ -3,6 +3,7 @@ import { INITIAL_STATE, type AppState } from '@shared/ipc'
 import { AskCard, type AskCardHandle, type Message, type Mode } from './AskCard'
 import { CommandBar } from './CommandBar'
 import { FakeCursor } from './FakeCursor'
+import { HistoryCard } from './HistoryCard'
 import { SettingsCard } from './SettingsCard'
 import { Tooltip } from './Tooltip'
 import { useMouseThrough } from './useOverlayInput'
@@ -23,6 +24,8 @@ export function App() {
   const [now, setNow] = useState(Date.now())
   const [cardOpen, setCardOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const sessionId = useRef(crypto.randomUUID())
   const [mode, setMode] = useState<Mode>('Interview practice')
   const [smartMode, setSmartMode] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -140,6 +143,24 @@ export function App() {
     })
   }, [])
 
+  // Autosave the current conversation as a session (debounced) so it appears in history.
+  useEffect(() => {
+    const real = messages.filter((m) => !m.streaming && !m.error)
+    if (real.length === 0) return
+    const id = setTimeout(() => {
+      const firstQuestion = messages.find((m) => m.role === 'user')?.text ?? 'Session'
+      window.hintlyx.saveSession({
+        id: sessionId.current,
+        at: Date.now(),
+        mode,
+        title: firstQuestion.slice(0, 120),
+        transcript: transcriptText,
+        messages: real.map((m) => ({ role: m.role, text: m.text }))
+      })
+    }, 1500)
+    return () => clearTimeout(id)
+  }, [messages, mode, transcriptText])
+
   const sessionSeconds = sessionStart === null ? null : Math.max(0, Math.floor((now - sessionStart) / 1000))
 
   // Only hide the real pointer when Windows confirms the overlay is excluded from capture.
@@ -162,8 +183,15 @@ export function App() {
           setListening(false)
           setCardOpen(false)
           setSettingsOpen(false)
+          setHistoryOpen(false)
+          // Start a fresh session id so the next conversation is saved separately.
+          setMessages([])
+          sessionId.current = crypto.randomUUID()
         }}
-        onToggleSettings={() => setSettingsOpen((s) => !s)}
+        onToggleSettings={() => {
+          setHistoryOpen(false)
+          setSettingsOpen((s) => !s)
+        }}
         onHide={() => window.hintlyx.hideWindow()}
       />
 
@@ -181,7 +209,17 @@ export function App() {
       {CAPTURE_MARKER && <div className="capture-marker" data-hit />}
 
       {settingsOpen ? (
-        <SettingsCard appState={appState} onPrefs={setPrefs} onBack={() => setSettingsOpen(false)} />
+        <SettingsCard
+          appState={appState}
+          onPrefs={setPrefs}
+          onBack={() => setSettingsOpen(false)}
+          onOpenHistory={() => {
+            setSettingsOpen(false)
+            setHistoryOpen(true)
+          }}
+        />
+      ) : historyOpen ? (
+        <HistoryCard onBack={() => setHistoryOpen(false)} />
       ) : (
         cardOpen && (
           <AskCard

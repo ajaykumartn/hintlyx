@@ -874,3 +874,56 @@ kbd {
   justify-content: space-between;
   padding: 5px 0;
 }
+
+.row-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.row-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line-soft);
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.session-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.session-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.session-main strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 440px;
+}

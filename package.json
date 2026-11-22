@@ -12,7 +12,27 @@
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
-    "test:invisibility": "electron-vite build && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-invisibility.ps1"
+    "test:invisibility": "electron-vite build && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-invisibility.ps1",
+    "dist": "electron-vite build && electron-builder --win --publish never"
+  },
+  "build": {
+    "appId": "in.ajaytn.hintlyx",
+    "productName": "Hintlyx",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": ["out/**/*", "package.json"],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "resources/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "Hintlyx-Setup-${version}.${ext}"
+    }
   },
   "overrides": {
     "csstype": "3.2.3"
@@ -23,6 +43,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^6.3.0",
     "electron": "^45.3.3",
+    "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
