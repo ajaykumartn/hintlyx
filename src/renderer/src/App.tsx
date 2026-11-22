@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { INITIAL_STATE, type AppState } from '@shared/ipc'
 import { AskCard, type AskCardHandle, type Message, type Mode } from './AskCard'
 import { CommandBar } from './CommandBar'
@@ -7,6 +7,7 @@ import { SettingsCard } from './SettingsCard'
 import { Tooltip } from './Tooltip'
 import { useMouseThrough } from './useOverlayInput'
 import { useTranscription } from './useTranscription'
+import { useSuggestions } from './useSuggestions'
 
 const CAPTURE_MARKER = new URLSearchParams(location.search).get('marker') === '1'
 const AUTO_LISTEN = new URLSearchParams(location.search).get('autolisten') === '1'
@@ -28,6 +29,11 @@ export function App() {
   const nextId = useRef(1)
   const cardRef = useRef<AskCardHandle>(null)
   const transcription = useTranscription(listening)
+  const transcriptText = useMemo(
+    () => transcription.lines.slice(-24).map((l) => l.text).join(' '),
+    [transcription.lines]
+  )
+  const suggestions = useSuggestions(listening, transcriptText, mode)
 
   // Dev-only: auto-start listening so the capture chain can be tested without clicking.
   useEffect(() => {
@@ -79,8 +85,22 @@ export function App() {
   const answerFromScreen = () => runAsk('', true)
 
   // The hotkey handler is registered once, so keep the latest ask functions in a ref.
-  const latest = useRef({ ask, answerFromScreen })
-  latest.current = { ask, answerFromScreen }
+  const latest = useRef({ ask, answerFromScreen, suggestions })
+  latest.current = { ask, answerFromScreen, suggestions }
+
+  // Tab runs the top suggestion (like Cluely), unless typing in the ask bar.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const typing = document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'INPUT'
+      const top = latest.current.suggestions[0]
+      if (typing || !top) return
+      e.preventDefault()
+      latest.current.ask(top)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // Stream answer events from the main process into the current assistant message.
   useEffect(() => {
@@ -179,6 +199,7 @@ export function App() {
             onAsk={ask}
             onAnswerFromScreen={answerFromScreen}
             onClear={() => setMessages([])}
+            suggestions={suggestions}
           />
         )
       )}

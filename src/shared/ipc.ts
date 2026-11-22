@@ -1,4 +1,4 @@
-import type { AnswerEvent, AskRequest } from './llm'
+import type { AnswerEvent, AskRequest, Mode } from './llm'
 import type { TimingReport } from './timing'
 
 export const PROVIDERS = ['groq', 'gemini'] as const
@@ -58,7 +58,8 @@ export const IPC = {
   cancelAsk: 'llm:cancel',
   answer: 'llm:answer',
   transcribe: 'audio:transcribe',
-  audioError: 'audio:error'
+  audioError: 'audio:error',
+  suggest: 'llm:suggest'
 } as const
 
 /** Commands the main process sends to the overlay (usually from a hotkey). */
@@ -122,6 +123,8 @@ export interface HintlyxApi {
   onAnswer(listener: (event: AnswerEvent) => void): () => void
   /** Transcribes a 16 kHz mono WAV clip, returning the recognised text (empty for silence). */
   transcribe(wav: ArrayBuffer): Promise<TranscribeResult>
+  /** Suggests a few short things to ask next, from the recent transcript. [] on failure. */
+  suggest(transcript: string, mode: Mode): Promise<string[]>
   quit(): void
 }
 

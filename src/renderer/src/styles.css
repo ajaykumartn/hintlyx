@@ -337,6 +337,29 @@ kbd {
   gap: 10px;
 }
 
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(147, 197, 253, 0.4);
+  background: rgba(37, 99, 235, 0.16);
+  color: #dbeafe;
+  font-size: 14px;
+}
+
+.suggestion:hover {
+  background: rgba(37, 99, 235, 0.3);
+}
+
 .transcript {
   line-height: 1.7;
   font-size: 14px;

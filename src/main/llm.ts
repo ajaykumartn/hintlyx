@@ -1,6 +1,8 @@
 import type { Provider } from '../shared/ipc'
 import { ProviderError, type AnswerEvent, type AskRequest } from '../shared/llm'
 import { systemPrompt, trimHistory, userPrompt } from '../shared/prompt'
+import { parseSuggestions, suggestPrompt } from '../shared/suggest'
+import type { Mode } from '../shared/llm'
 import { GeminiProvider } from './providers/gemini'
 import { GroqProvider } from './providers/groq'
 import { buildPlan, unavailableReason, type ProviderChoice } from './providers/plan'
@@ -73,5 +75,42 @@ export class LlmService {
     }
 
     yield { id: req.id, kind: 'error', message: lastError?.message ?? 'The answer could not be generated.' }
+  }
+
+  /**
+   * Generates a few short suggestions from the recent transcript (the copilot's "dynamic
+   * actions"). Uses the fast text provider, non-streaming. Returns [] on any failure so the
+   * UI simply shows nothing rather than an error.
+   */
+  async suggest(transcript: string, mode: Mode, signal: AbortSignal): Promise<string[]> {
+    const text = transcript.trim()
+    if (text.length < 20) return []
+    const available = (['groq', 'gemini'] as Provider[]).filter((p) => this.keys.get(p))
+    const plan = buildPlan({ available, withScreen: false, smart: false })
+    if (plan.length === 0) return []
+
+    const completion: Omit<CompletionRequest, 'signal'> = {
+      system: suggestPrompt(mode),
+      history: [],
+      user: trimHistory([{ role: 'user', text }])[0]?.text ?? text,
+      mode
+    }
+
+    for (const choice of plan) {
+      const apiKey = this.keys.get(choice.provider)
+      if (!apiKey) continue
+      try {
+        let collected = ''
+        for await (const delta of makeProvider(choice, this.fetchImpl).stream({ ...completion, signal }, apiKey)) {
+          collected += delta
+          if (collected.length > 400) break // suggestions are short; stop runaway output
+        }
+        const parsed = parseSuggestions(collected)
+        if (parsed.length > 0) return parsed
+      } catch {
+        // try the next provider
+      }
+    }
+    return []
   }
 }

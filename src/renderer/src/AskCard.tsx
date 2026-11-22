@@ -37,6 +37,8 @@ interface Props {
   onAsk(text: string): void
   onAnswerFromScreen(): void
   onClear(): void
+  /** Dynamic suggestions from the live transcript, shown below the card. */
+  suggestions: string[]
 }
 
 export interface AskCardHandle {
@@ -209,6 +211,17 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
           </button>
         </div>
       </div>
+
+      {p.suggestions.length > 0 && (
+        <div className="suggestions">
+          {p.suggestions.map((s, i) => (
+            <button key={s} className="suggestion" onClick={() => p.onAsk(s)}>
+              {s}
+              {i === 0 && <kbd>Tab</kbd>}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 })

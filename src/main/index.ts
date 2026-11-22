@@ -12,7 +12,7 @@ import {
 import { createTimer, formatReport, pushLimited, type TimingReport } from '../shared/timing'
 import { fileStorage } from './fileStorage'
 import { registerHotkeys, unregisterHotkeys } from './hotkeys'
-import { isAskRequest, type AnswerEvent, type AskRequest } from '../shared/llm'
+import { isAskRequest, isMode, type AnswerEvent, type AskRequest } from '../shared/llm'
 import { applyInvisibility } from './invisibility'
 import { KeyStore } from './keyStore'
 import { LlmService } from './llm'
@@ -30,6 +30,8 @@ let timings: TimingReport[] = []
 let dragOrigin: [number, number] | null = null
 /** In-flight asks, so each can be cancelled by id. */
 const inFlight = new Map<string, AbortController>()
+/** The latest suggestion request; a new one cancels the previous. */
+let suggestAbort: AbortController | null = null
 const state: AppState = structuredClone(INITIAL_STATE)
 
 /** Applies invisibility and taskbar settings, then confirms them with the OS. */
@@ -212,6 +214,16 @@ function registerIpc(): void {
   })
   on(IPC.cancelAsk, (id: unknown) => {
     if (typeof id === 'string') inFlight.get(id)?.abort()
+  })
+  handle(IPC.suggest, async (transcript: unknown, mode: unknown): Promise<string[]> => {
+    if (typeof transcript !== 'string' || !isMode(mode)) return []
+    suggestAbort?.abort()
+    suggestAbort = new AbortController()
+    try {
+      return await llm.suggest(transcript, mode, suggestAbort.signal)
+    } catch {
+      return []
+    }
   })
   handle(IPC.transcribe, async (wav: unknown): Promise<TranscribeResult> => {
     if (!(wav instanceof ArrayBuffer) && !ArrayBuffer.isView(wav)) return { text: '', error: 'bad audio data' }
