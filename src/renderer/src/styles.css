@@ -331,6 +331,164 @@ kbd {
   color: var(--warn);
 }
 
+/* ---------- markdown ---------- */
+
+.answer-md {
+  position: relative;
+}
+
+.md {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md p {
+  margin: 0 0 8px;
+  white-space: normal;
+}
+
+.md strong {
+  color: #fff;
+  font-weight: 650;
+}
+
+.md h1,
+.md h2,
+.md h3 {
+  margin: 12px 0 6px;
+  font-size: 15px;
+  font-weight: 650;
+  color: #fff;
+}
+
+.md ul,
+.md ol {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+}
+
+.md li {
+  margin: 3px 0;
+}
+
+.md li::marker {
+  color: var(--blue-hi);
+}
+
+.md blockquote {
+  margin: 6px 0;
+  padding: 2px 0 2px 12px;
+  border-left: 3px solid var(--line);
+  color: var(--muted);
+}
+
+.inline-code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(148, 163, 184, 0.16);
+  border: 1px solid var(--line-soft);
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  color: #93c5fd;
+}
+
+.code-block {
+  position: relative;
+  margin: 8px 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #0a0e1a;
+  border: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.code-block code {
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  background: none;
+}
+
+.code-lang {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.md table {
+  border-collapse: collapse;
+  margin: 6px 0;
+}
+
+.md td,
+.md th {
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+}
+
+.md-link {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+.answer-md .caret {
+  vertical-align: text-bottom;
+}
+
+/* highlight.js dark palette */
+.hljs-comment,
+.hljs-quote {
+  color: #6b7a90;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-name,
+.hljs-tag {
+  color: #c792ea;
+}
+.hljs-string,
+.hljs-title,
+.hljs-section,
+.hljs-attribute,
+.hljs-literal,
+.hljs-template-tag,
+.hljs-type,
+.hljs-addition {
+  color: #c3e88d;
+}
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-title.class_,
+.hljs-title.function_ {
+  color: #f78c6c;
+}
+.hljs-variable,
+.hljs-params,
+.hljs-attr {
+  color: #82aaff;
+}
+.hljs-deletion {
+  color: #ff5370;
+}
+
 .answer-foot {
   display: flex;
   align-items: center;

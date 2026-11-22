@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { MODES, type Mode } from '@shared/llm'
 import { BadgeCheck, Bolt, ChatQ, Check, Chevron, Copy, Eye, EyeOff, Lines, Monitor, Recap } from './icons'
+import { Markdown } from './Markdown'
 
 export type { Mode }
 export { MODES }
@@ -149,10 +150,14 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
               </div>
             ) : (
               <div key={m.id} className={`answer${m.error ? ' error' : ''}`}>
-                <p>
-                  {m.text}
-                  {m.streaming && <span className="caret" />}
-                </p>
+                {m.error ? (
+                  <p>{m.text}</p>
+                ) : (
+                  <div className="answer-md">
+                    <Markdown text={m.text} />
+                    {m.streaming && <span className="caret" />}
+                  </div>
+                )}
                 {!m.streaming && !m.error && m.text && (
                   <div className="answer-foot">
                     {m.provider && <span className="muted small">{m.provider}</span>}
