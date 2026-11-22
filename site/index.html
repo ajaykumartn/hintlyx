@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hintlyx — your invisible AI copilot for meetings & interviews</title>
+    <meta
+      name="description"
+      content="Hintlyx listens to your call, reads your screen, and gives you answers in a private overlay in under three seconds. Free, bring your own API keys."
+    />
+    <meta property="og:title" content="Hintlyx — invisible AI copilot" />
+    <meta
+      property="og:description"
+      content="Real-time answers for meetings, lectures and interview practice. Private, fast, on your own PC."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <a class="brand" href="#top">
+        <span class="logo" aria-hidden="true"></span>
+        Hintlyx
+      </a>
+      <nav>
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a class="btn btn-small" href="#download">Download</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <p class="eyebrow">Real-time AI copilot</p>
+        <h1>Answers in the moment,<br />only you can see.</h1>
+        <p class="sub">
+          Hintlyx listens to your conversation and reads your screen, then gives you the exact answer in a
+          private overlay — in under three seconds. For meetings, lectures and interview practice.
+        </p>
+        <div class="cta">
+          <a class="btn btn-lg" href="#download">Download for Windows</a>
+          <a class="btn btn-ghost btn-lg" href="https://github.com/ajaykumartn/hintlyx">View on GitHub</a>
+        </div>
+        <p class="note">Free. Bring your own API keys. Windows 10 &amp; 11, 64-bit.</p>
+      </section>
+
+      <section id="how" class="band">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li><span>1</span> It hears the other person through your system audio and your mic.</li>
+          <li><span>2</span> It pulls out the exact question being asked.</li>
+          <li><span>3</span> You click it (or press Tab) and the answer streams into your overlay.</li>
+        </ol>
+      </section>
+
+      <section id="features" class="features">
+        <h2>What you get</h2>
+        <div class="grid">
+          <article><h3>Invisible on screen share</h3><p>Hidden from screen sharing, recordings and screenshots, including the mouse pointer. Windows 10 (2004) and newer.</p></article>
+          <article><h3>Under three seconds</h3><p>Streamed answers from Groq, with Google Gemini as a fallback. First words usually in about a second.</p></article>
+          <article><h3>Reads your screen</h3><p>One shortcut captures your screen and answers what is on it — code, questions, documents.</p></article>
+          <article><h3>Live transcript</h3><p>Accurate transcription with Whisper, cleaned up, with the latest question surfaced for you to answer.</p></article>
+          <article><h3>Private by default</h3><p>Runs on your PC. Your API keys are encrypted locally. Nothing is sent anywhere except the AI providers you choose.</p></article>
+          <article><h3>Works offline</h3><p>Optional local fallback through Ollama, so answers keep coming if your internet drops.</p></article>
+        </div>
+      </section>
+
+      <section id="download" class="download band">
+        <h2>Download Hintlyx</h2>
+        <p>Free, open source, MIT licensed. Set your own free Groq and Gemini keys in Settings after install.</p>
+        <a class="btn btn-lg" id="download-btn" href="https://github.com/ajaykumartn/hintlyx/releases/latest">
+          Download for Windows (64-bit)
+        </a>
+        <p class="note">
+          The installer is not code-signed yet, so Windows may warn on first run — choose
+          <strong>More info → Run anyway</strong>.
+        </p>
+        <p class="note">Use Hintlyx only where AI assistance is allowed.</p>
+      </section>
+    </main>
+
+    <footer>
+      <span>© 2026 ajaykumar · Hintlyx</span>
+      <a href="https://github.com/ajaykumartn/hintlyx">GitHub</a>
+    </footer>
+  </body>
+</html>
