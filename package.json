@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "test:invisibility": "electron-vite build && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-invisibility.ps1",
-    "dist": "electron-vite build && electron-builder --win --publish never"
+    "dist": "electron-vite build && electron-builder --win --publish never",
+    "dist:win": "electron-vite build && electron-builder --win --publish never",
+    "dist:mac": "electron-vite build && electron-builder --mac --publish never"
   },
   "build": {
     "appId": "in.ajaytn.hintlyx",
@@ -32,6 +34,21 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "artifactName": "Hintlyx-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
+      ],
+      "icon": "resources/icon.png",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": false,
+      "identity": null,
+      "artifactName": "Hintlyx-${version}-${arch}.${ext}",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Hintlyx transcribes meeting audio so it can help you respond.",
+        "NSScreenCaptureUsageDescription": "Hintlyx reads your screen to answer questions about what you see."
+      }
     }
   },
   "overrides": {

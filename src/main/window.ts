@@ -42,6 +42,11 @@ export function createOverlayWindow(opts: { captureMarker?: boolean } = {}): Bro
   })
 
   win.setAlwaysOnTop(true, 'floating')
+  // On macOS, float above full-screen apps and show on every Space (like a true overlay).
+  if (process.platform === 'darwin') {
+    win.setAlwaysOnTop(true, 'screen-saver')
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  }
   // Start with clicks passing through; the overlay turns this off while the mouse is over its UI.
   win.setIgnoreMouseEvents(true, { forward: true })
 

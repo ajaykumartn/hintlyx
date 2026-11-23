@@ -55,18 +55,7 @@ a {
   width: 26px;
   height: 26px;
   border-radius: 7px;
-  background: var(--blue);
-  position: relative;
-}
-
-.logo::before {
-  content: '';
-  position: absolute;
-  inset: 7px;
-  border-radius: 3px;
-  background:
-    linear-gradient(#fff, #fff) center / 11px 3px no-repeat,
-    linear-gradient(#fff, #fff) center / 3px 11px no-repeat;
+  display: block;
 }
 
 .nav nav {
