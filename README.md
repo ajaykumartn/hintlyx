@@ -2,7 +2,7 @@
 
 A fast AI copilot for meetings, lectures and interview practice. Hintlyx sits on top of your screen as a small command bar and gives you answers about your screen and conversation.
 
-Hintlyx is visible by default. Click the eye button (or Settings, Invisibility) to hide it from screen sharing, recordings and screenshots, and optionally from the taskbar. Invisibility needs Windows 10 version 2004 or newer.
+Hintlyx is invisible by default. Click the eye button (or Settings, Invisibility) to hide it from screen sharing, recordings and screenshots, and optionally from the taskbar. Invisibility needs Windows 10 version 2004 or newer.
 
 ## Status
 
