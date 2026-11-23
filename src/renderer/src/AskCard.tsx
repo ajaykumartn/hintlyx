@@ -83,9 +83,14 @@ export const AskCard = forwardRef<AskCardHandle, Props>(function AskCard(p, ref)
         <button
           className={`eye-btn${p.invisible ? ' on' : ''}`}
           onClick={p.onToggleInvisible}
-          aria-label={p.invisible ? 'Invisible to screen share (click to make visible)' : 'Visible to screen share (click to hide)'}
+          aria-label={
+            p.invisible
+              ? 'Hidden from screen share. Click the eye to show Hintlyx to others.'
+              : 'Visible to screen share. Click the eye to hide Hintlyx from others.'
+          }
         >
           {p.invisible ? <EyeOff size={18} /> : <Eye size={18} />}
+          <span className="eye-label">{p.invisible ? 'Hidden' : 'Shown'}</span>
         </button>
         <div className="mode">
           <button className="mode-btn" onClick={() => setModeOpen((o) => !o)}>

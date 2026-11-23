@@ -15,9 +15,9 @@ const memory = (data: string | null = null): TextStorage & { data: string | null
 
 describe('sanitizePrefs', () => {
   it('keeps known booleans and drops everything else', () => {
-    expect(sanitizePrefs({ invisible: true, hideFromTaskbar: 'yes', evil: 1 })).toEqual({
+    expect(sanitizePrefs({ invisible: false, hideFromTaskbar: 'yes', evil: 1 })).toEqual({
       ...DEFAULT_PREFS,
-      invisible: true,
+      invisible: false,
       hideFromTaskbar: false
     })
     expect(sanitizePrefs(null)).toEqual(DEFAULT_PREFS)
@@ -36,8 +36,8 @@ describe('PrefsStore', () => {
     const storage = memory()
     const store = new PrefsStore(storage)
     expect(store.get()).toEqual(DEFAULT_PREFS)
-    store.update({ invisible: true })
-    expect(new PrefsStore(storage).get()).toEqual({ ...DEFAULT_PREFS, invisible: true })
+    store.update({ invisible: false })
+    expect(new PrefsStore(storage).get()).toEqual({ ...DEFAULT_PREFS, invisible: false })
   })
 
   it('treats a corrupt file as defaults', () => {

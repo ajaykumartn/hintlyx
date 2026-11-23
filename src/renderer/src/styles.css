@@ -661,13 +661,24 @@ kbd {
 }
 
 .eye-btn {
-  display: grid;
-  place-items: center;
-  width: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 38px;
+  padding: 0 12px;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: rgba(0, 0, 0, 0.25);
+}
+
+.eye-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.eye-btn.on .eye-label {
+  color: #93c5fd;
 }
 
 .eye-btn:hover {

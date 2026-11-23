@@ -2,7 +2,7 @@ import { DEFAULT_OLLAMA, type OllamaPrefs, type Preferences } from '../shared/ip
 import type { TextStorage } from './keyStore'
 
 export const DEFAULT_PREFS: Preferences = {
-  invisible: false,
+  invisible: true,
   hideFromTaskbar: false,
   ollama: { ...DEFAULT_OLLAMA }
 }

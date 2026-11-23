@@ -94,6 +94,7 @@ export interface Preferences {
   ollama: OllamaPrefs
 }
 
+/** Hintlyx starts hidden from screen sharing on every launch; the user clicks the eye to show it. */
 export const DEFAULT_OLLAMA: OllamaPrefs = {
   enabled: false,
   baseUrl: 'http://localhost:11434',
@@ -118,7 +119,7 @@ export interface AppState {
 
 export const INITIAL_STATE: AppState = {
   failedHotkeys: [],
-  prefs: { invisible: false, hideFromTaskbar: false, ollama: DEFAULT_OLLAMA },
+  prefs: { invisible: true, hideFromTaskbar: false, ollama: DEFAULT_OLLAMA },
   invisibility: { supported: true, active: false, failed: false }
 }
 

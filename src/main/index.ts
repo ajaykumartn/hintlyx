@@ -268,6 +268,9 @@ if (!app.requestSingleInstanceLock()) {
     prefsStore = new PrefsStore(fileStorage(join(app.getPath('userData'), 'prefs.json')))
     sessionStore = new SessionStore(fileStorage(join(app.getPath('userData'), 'sessions.json')))
     state.prefs = prefsStore.get()
+    // Always start hidden from screen sharing so Hintlyx is never accidentally visible on a
+    // shared screen. The user clicks the eye to show it. This resets on every launch.
+    state.prefs.invisible = true
     llm = new LlmService(
       { get: (p) => keyStore.get(p) },
       fetch,
