@@ -1,4 +1,4 @@
-import { Close, Grip, Logo, MicOff, PlayDot, StopDot, Wave } from './icons'
+import { Close, Gear, Grip, MicOff, PlayDot, StopDot, Wave } from './icons'
 import { useWindowDrag } from './useOverlayInput'
 
 interface Props {
@@ -34,7 +34,7 @@ export function CommandBar(p: Props) {
           aria-label="Settings"
           onClick={p.onToggleSettings}
         >
-          <Logo size={22} />
+          <Gear size={20} />
         </button>
 
         <span className="status">{p.listening ? 'Listening' : 'Not listening'}</span>
