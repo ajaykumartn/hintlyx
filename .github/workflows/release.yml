@@ -18,6 +18,8 @@ jobs:
   build:
     strategy:
       fail-fast: false
+      # Build one OS at a time so the two jobs never race to create the same GitHub Release.
+      max-parallel: 1
       matrix:
         include:
           - os: windows-latest
