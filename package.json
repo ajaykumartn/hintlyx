@@ -1,6 +1,6 @@
 {
   "name": "hintlyx",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Hintlyx: a fast AI copilot for meetings and interview practice",
   "author": "ajaykumar",
   "license": "MIT",
@@ -43,7 +43,7 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "Hintlyx-Setup-${version}.${ext}"
+      "artifactName": "Hintlyx-Setup.${ext}"
     },
     "publish": [
       {
@@ -74,7 +74,7 @@
       "category": "public.app-category.productivity",
       "hardenedRuntime": false,
       "identity": null,
-      "artifactName": "Hintlyx-${version}-${arch}.${ext}",
+      "artifactName": "Hintlyx-mac-${arch}.${ext}",
       "extendInfo": {
         "NSMicrophoneUsageDescription": "Hintlyx transcribes meeting audio so it can help you respond.",
         "NSScreenCaptureUsageDescription": "Hintlyx reads your screen to answer questions about what you see."
@@ -105,3 +105,4 @@
     "remark-gfm": "^4.0.1"
   }
 }
+

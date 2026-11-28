@@ -1,0 +1,6 @@
+# Cloudflare Pages headers.
+# Revalidate every file so CSS/HTML updates appear immediately (no stale styling).
+# max-age=0 + must-revalidate means the browser re-checks with an ETag each time; if nothing
+# changed it gets a fast 304, so this stays cheap while never serving an outdated file.
+/*
+  Cache-Control: public, max-age=0, must-revalidate
