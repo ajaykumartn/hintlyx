@@ -18,6 +18,7 @@ import { KeyStore } from './keyStore'
 import { LlmService } from './llm'
 import { PrefsStore } from './prefs'
 import { SessionStore } from './sessionStore'
+import { initAutoUpdates } from './updater'
 import { captureScreenBase64 } from './screenshot'
 import { transcribeWav } from './providers/transcribe'
 import { enableSystemAudioLoopback } from './audioLoopback'
@@ -318,6 +319,8 @@ if (!app.requestSingleInstanceLock()) {
       win?.showInactive()
       t.mark('ready-to-show')
       record(t.end())
+      // Check for a newer release in the background (packaged Windows builds only).
+      initAutoUpdates(app.isPackaged)
     })
     win.on('closed', () => {
       win = null
